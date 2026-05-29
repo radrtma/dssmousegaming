@@ -102,8 +102,3 @@ Sistem ini mengevaluasi mouse gaming berdasarkan 8 kriteria berikut secara menye
 6. **Material (C6)** - *Benefit* (Bobot: 10%) - Kualitas build, ketahanan bodi, dan keawetan switch mouse (skala 1-10), semakin tinggi semakin tahan lama.
 7. **Berat (C7)** - *Benefit* (Bobot: 10%) - Berat mouse dalam gram. Diukur sebagai benefit (menampilkan preferensi bobot solid/kustomisasi user).
 8. **Tampilan (C8)** - *Benefit* (Bobot: 10%) - Estetika visual, desain bentuk, dan keindahan fitur RGB lighting (skala 1-10), semakin tinggi semakin menarik.
-
----
-
-## 📜 Lisensi
-Project ini dibuat untuk tujuan akademik/pembelajaran pengambilan keputusan multi-kriteria (MADM).
