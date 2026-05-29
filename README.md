@@ -4,7 +4,7 @@ Sistem Pendukung Keputusan (DSS / SPK) untuk rekomendasi mouse gaming terbaik me
 
 ## 🚀 Fitur Utama
 1. **Dashboard Modern**: Vibe modern dashboard SaaS gelap (dark mode) dengan metrik performa, top 3 rekomendasi mouse, dan leaderboard peringkat.
-2. **Kelola Alternatif (CRUD)**: Menambah, mengubah, mencari, dan menghapus alternatif mouse gaming secara dinamis.
+2. **Kelola Alternatif (CRUD)**: Menambah, mengubah, mencari, dan menghapus alternatif mouse gaming secara dinamis dengan 8 kriteria komprehensif.
 3. **Detail Perhitungan TOPSIS**: Visualisasi interaktif setiap langkah dari 6 tahapan metode TOPSIS:
    - Matriks Keputusan ($X$)
    - Matriks Normalisasi ($R$)
@@ -67,7 +67,7 @@ Pastikan Anda memiliki tools berikut di komputer Anda:
 5. Klik tab **Import**, pilih file `backend/database.sql` dari folder project, lalu tekan **Go/Import**.
    - *Alternatif:* Anda juga bisa mengimpor via command line:
      ```bash
-     C:\xampp\mysql\bin\mysql.exe -u root -p webdss < backend/database.sql
+     C:\xampp\mysql\bin\mysql.exe -u root webdss < backend/database.sql
      ```
 
 ### 3. Jalankan Backend (PHP)
@@ -91,18 +91,19 @@ Pastikan Anda memiliki tools berikut di komputer Anda:
 
 ---
 
-## 📐 Kriteria & Bobot TOPSIS
+## 📐 Kriteria & Bobot TOPSIS (8 Kriteria Baru)
 
-Sistem ini mengevaluasi mouse gaming berdasarkan 6 kriteria berikut:
-1. **Harga (C1)** - *Cost* (Bobot: 25%) - Semakin murah harga mouse, semakin baik nilainya.
-2. **Berat (C2)** - *Cost* (Bobot: 15%) - Semakin ringan berat mouse, semakin baik nilainya.
-3. **Sensor (C3)** - *Benefit* (Bobot: 25%) - Kualitas sensor (skala 1-10), semakin tinggi semakin baik.
-4. **Ergonomi (C4)** - *Benefit* (Bobot: 15%) - Kenyamanan genggaman (skala 1-10), semakin tinggi semakin baik.
-5. **Konektivitas (C5)** - *Benefit* (Bobot: 10%) - Fleksibilitas konektivitas (Wireless = 10, Wired = 7).
-6. **Durability (C6)** - *Benefit* (Bobot: 10%) - Ketahanan switch & bodi (skala 1-10), semakin tinggi semakin baik.
+Sistem ini mengevaluasi mouse gaming berdasarkan 8 kriteria berikut secara menyeluruh:
+1. **Harga (C1)** - *Cost* (Bobot: 20%) - Harga mouse dalam ribuan rupiah. Semakin murah harga mouse, semakin baik nilainya.
+2. **Sensor (C2)** - *Benefit* (Bobot: 15%) - Kualitas sensor (skala 1-10), semakin tinggi kualitas pelacakan semakin baik.
+3. **DPI (C3)** - *Benefit* (Bobot: 10%) - Fleksibilitas dan jangkauan sensitivitas DPI (skala 1-10), semakin tinggi semakin baik.
+4. **Tombol (C4)** - *Benefit* (Bobot: 10%) - Jumlah tombol tambahan dan kemampuan kustomisasi tombol (skala 1-10), semakin tinggi semakin baik.
+5. **Ergonomi (C5)** - *Benefit* (Bobot: 15%) - Tingkat kenyamanan bentuk & grip mouse saat digenggam lama (skala 1-10), semakin tinggi semakin nyaman.
+6. **Material (C6)** - *Benefit* (Bobot: 10%) - Kualitas build, ketahanan bodi, dan keawetan switch mouse (skala 1-10), semakin tinggi semakin tahan lama.
+7. **Berat (C7)** - *Benefit* (Bobot: 10%) - Berat mouse dalam gram. Diukur sebagai benefit (menampilkan preferensi bobot solid/kustomisasi user).
+8. **Tampilan (C8)** - *Benefit* (Bobot: 10%) - Estetika visual, desain bentuk, dan keindahan fitur RGB lighting (skala 1-10), semakin tinggi semakin menarik.
 
 ---
 
 ## 📜 Lisensi
 Project ini dibuat untuk tujuan akademik/pembelajaran pengambilan keputusan multi-kriteria (MADM).
-# dssmousegaming
