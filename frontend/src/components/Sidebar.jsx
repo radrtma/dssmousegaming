@@ -3,42 +3,27 @@ import { useState } from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
 import {
   LayoutDashboard, MousePointer2, Calculator,
-  Table2, BarChart3, Layers, Target, Star, Trophy,
+  Table2, BarChart3, Layers, Target, Star, Trophy, Ruler,
   ChevronDown, ChevronRight, Cpu
 } from 'lucide-react';
 
 const topsisSubmenu = [
-  { to: '/calculation/matrix',      label: 'Matriks Keputusan',   icon: Table2 },
-  { to: '/calculation/normalized',  label: 'Normalisasi',          icon: Layers },
-  { to: '/calculation/weighted',    label: 'Terbobot',             icon: BarChart3 },
-  { to: '/calculation/ideal',       label: 'Solusi Ideal',         icon: Target },
-  { to: '/calculation/preference',  label: 'Nilai Preferensi',     icon: Star },
-  { to: '/calculation/ranking',     label: 'Ranking Akhir',        icon: Trophy },
+  { to: '/calculation/matrix',      label: 'Matriks Keputusan',      icon: Table2 },
+  { to: '/calculation/normalized',  label: 'Normalisasi',            icon: Layers },
+  { to: '/calculation/weighted',    label: 'Terbobot',               icon: BarChart3 },
+  { to: '/calculation/ideal',       label: 'Solusi Ideal',           icon: Target },
+  { to: '/calculation/distance',    label: 'Jarak Antar Alternatif', icon: Ruler },
+  { to: '/calculation/preference',  label: 'Nilai Preferensi',       icon: Star },
+  { to: '/calculation/ranking',     label: 'Ranking Akhir',          icon: Trophy },
 ];
 
-export default function Sidebar() {
+export default function Sidebar({ isOpen = true, onNavigate }) {
   const location = useLocation();
   const isCalcActive = location.pathname.startsWith('/calculation');
   const [calcOpen, setCalcOpen] = useState(isCalcActive);
 
   return (
-    <aside
-      className="animate-slide-in-left"
-      style={{
-        width: '230px',
-        minWidth: '230px',
-        background: 'var(--bg-surface)',
-        borderRight: '1px solid var(--border)',
-        display: 'flex',
-        flexDirection: 'column',
-        height: '100vh',
-        position: 'fixed',
-        top: 0,
-        left: 0,
-        zIndex: 50,
-        overflowY: 'auto',
-      }}
-    >
+    <aside className={`sidebar ${isOpen ? 'sidebar-open' : 'sidebar-closed'}`}>
       {/* Brand */}
       <div style={{ padding: '20px 18px 16px', borderBottom: '1px solid var(--border)' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
@@ -68,10 +53,10 @@ export default function Sidebar() {
         </div>
 
         {/* Dashboard */}
-        <SidebarLink to="/" icon={LayoutDashboard} label="Dashboard" />
+        <SidebarLink to="/" icon={LayoutDashboard} label="Dashboard" onNavigate={onNavigate} />
 
         {/* Alternatif */}
-        <SidebarLink to="/alternatives" icon={MousePointer2} label="Alternatif" />
+        <SidebarLink to="/alternatives" icon={MousePointer2} label="Alternatif" onNavigate={onNavigate} />
 
         {/* TOPSIS — collapsible */}
         <div>
@@ -110,7 +95,7 @@ export default function Sidebar() {
                 display: 'flex', flexDirection: 'column', gap: '2px'
               }}>
                 {topsisSubmenu.map(item => (
-                  <SubLink key={item.to} {...item} />
+                  <SubLink key={item.to} {...item} onNavigate={onNavigate} />
                 ))}
               </div>
             </div>
@@ -128,11 +113,12 @@ export default function Sidebar() {
   );
 }
 
-function SidebarLink({ to, icon: Icon, label }) {
+function SidebarLink({ to, icon: Icon, label, onNavigate }) {
   return (
     <NavLink
       to={to}
       end
+      onClick={onNavigate}
       style={({ isActive }) => ({
         display: 'flex',
         alignItems: 'center',
@@ -155,10 +141,11 @@ function SidebarLink({ to, icon: Icon, label }) {
   );
 }
 
-function SubLink({ to, icon: Icon, label }) {
+function SubLink({ to, icon: Icon, label, onNavigate }) {
   return (
     <NavLink
       to={to}
+      onClick={onNavigate}
       style={({ isActive }) => ({
         display: 'flex',
         alignItems: 'center',

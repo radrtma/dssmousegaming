@@ -148,8 +148,8 @@ class TopsisCalculator {
     }
 
     // --------------------------------------------------------
-    // Step 6 — Preference Value (Ci) & Ranking
-    // Ci = D- / (D+ + D-)
+    // Step 6 - Preference Value (V) & Ranking
+    // V = D- / (D+ + D-)
     // --------------------------------------------------------
     private function rank(): void {
         $scores = [];

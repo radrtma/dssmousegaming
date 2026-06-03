@@ -1,5 +1,4 @@
 // src/pages/Calculation.jsx
-import { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Info, ChevronRight } from 'lucide-react';
 import CalculationTable, { IdealSolutionTable } from '../components/CalculationTable';
@@ -9,9 +8,10 @@ const TABS = [
   { id: 'matrix',      path: '/calculation/matrix',      label: '1. Matriks Keputusan'   },
   { id: 'normalized',  path: '/calculation/normalized',  label: '2. Normalisasi'           },
   { id: 'weighted',    path: '/calculation/weighted',    label: '3. Terbobot'              },
-  { id: 'ideal',       path: '/calculation/ideal',       label: '4. Solusi Ideal'          },
-  { id: 'preference',  path: '/calculation/preference',  label: '5. Nilai Preferensi'      },
-  { id: 'ranking',     path: '/calculation/ranking',     label: '6. Ranking Akhir'         },
+  { id: 'ideal',       path: '/calculation/ideal',       label: '4. Solusi Ideal'             },
+  { id: 'distance',    path: '/calculation/distance',    label: '5. Jarak Antar Alternatif' },
+  { id: 'preference',  path: '/calculation/preference',  label: '6. Nilai Preferensi'         },
+  { id: 'ranking',     path: '/calculation/ranking',     label: '7. Ranking Akhir'            },
 ];
 
 export default function Calculation({ steps, alternatives, criteria, rankings }) {
@@ -88,6 +88,7 @@ export default function Calculation({ steps, alternatives, criteria, rankings })
         {activeTab === 'normalized' && <NormalizedTab  rows={buildRows(normalized_matrix)} headers={criteriaHeaders} criteria={criteria} />}
         {activeTab === 'weighted'   && <WeightedTab    rows={buildRows(weighted_matrix)}   headers={criteriaHeaders} criteria={criteria} />}
         {activeTab === 'ideal'      && <IdealTab       criteria={criteria} ip={ideal_positive} in_={ideal_negative} />}
+        {activeTab === 'distance'   && <DistanceTab    altIds={altIds} altName={altName} separations={separations} />}
         {activeTab === 'preference' && <PreferenceTab  altIds={altIds} altName={altName} separations={separations} rankings={rankings} />}
         {activeTab === 'ranking'    && <RankingTab     rankings={rankings} alternatives={alternatives} />}
       </div>
@@ -193,30 +194,98 @@ function IdealTab({ criteria, ip, in_ }) {
   );
 }
 
-function PreferenceTab({ altIds, altName, separations, rankings }) {
-  const rankMap = {};
-  rankings.forEach(r => { rankMap[r.alternative_id] = r; });
-
+function DistanceTab({ altIds, altName, separations }) {
   const rows = altIds.map(id => {
-    const sep  = separations[id] || {};
-    const rank = rankMap[id];
+    const sep = separations[id] || {};
     return [
       altName(id),
-      sep.d_plus  ?? 0,
+      sep.d_plus ?? 0,
       sep.d_minus ?? 0,
-      rank?.topsis_score ?? 0,
     ];
   });
 
   return (
     <TabCard
-      title="Jarak dari Solusi Ideal & Nilai Preferensi (Ci)"
-      formula="D⁺ = √Σ(v_ij − A⁺_j)²   ·   D⁻ = √Σ(v_ij − A⁻_j)²   ·   Ci = D⁻ / (D⁺ + D⁻)"
-      description="D⁺ adalah jarak alternatif ke solusi ideal positif, D⁻ adalah jarak ke solusi ideal negatif. Nilai preferensi Ci berkisar 0–1; semakin tinggi semakin baik."
+      title="Jarak Antar Alternatif"
+      formula="D⁺ᵢ = √Σ(vᵢⱼ − A⁺ⱼ)²   ·   D⁻ᵢ = √Σ(vᵢⱼ − A⁻ⱼ)²"
+      description="Bagian ini menghitung jarak setiap alternatif terhadap solusi ideal positif dan solusi ideal negatif. D⁺ menunjukkan jarak ke kondisi terbaik. D⁻ menunjukkan jarak ke kondisi terburuk."
     >
       <CalculationTable
-        headers={['Alternatif', 'D⁺ (Jarak ke A⁺)', 'D⁻ (Jarak ke A⁻)', 'Ci (Nilai Preferensi)']}
+        headers={['Alternatif', 'D⁺ (Jarak ke A⁺)', 'D⁻ (Jarak ke A⁻)']}
         rows={rows}
+      />
+    </TabCard>
+  );
+}
+
+function PreferenceFormulaCard() {
+  return (
+    <div style={{
+      padding: '18px 18px 20px',
+      borderBottom: '1px solid var(--border)',
+      background: 'rgba(34,211,238,0.03)'
+    }}>
+      <p style={{ fontSize: '0.82rem', color: 'var(--text-secondary)', marginBottom: '12px', lineHeight: 1.6 }}>
+        Nilai preferensi untuk setiap alternatif dihitung menggunakan rumus berikut.
+      </p>
+      <div style={{
+        display: 'inline-flex',
+        alignItems: 'center',
+        gap: '12px',
+        padding: '14px 22px',
+        borderRadius: '10px',
+        background: 'rgba(34,211,238,0.18)',
+        border: '1px solid rgba(34,211,238,0.3)',
+        color: 'var(--text-primary)',
+        fontFamily: 'Georgia, serif',
+        fontSize: '1.5rem',
+      }}>
+        <span>Vᵢ =</span>
+        <span style={{ display: 'inline-flex', flexDirection: 'column', alignItems: 'center', lineHeight: 1.1 }}>
+          <span>D⁻ᵢ</span>
+          <span style={{ height: 1, width: '100%', background: 'currentColor', margin: '5px 0' }} />
+          <span>D⁻ᵢ + D⁺ᵢ</span>
+        </span>
+      </div>
+      <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginTop: '12px', lineHeight: 1.65 }}>
+        Nilai V yang lebih besar menunjukkan alternatif lebih dipilih karena lebih dekat ke solusi ideal positif dan lebih jauh dari solusi ideal negatif.
+      </p>
+    </div>
+  );
+}
+
+function PreferenceTab({ altIds, altName, separations, rankings }) {
+  const rankMap = {};
+  rankings.forEach(r => { rankMap[r.alternative_id] = r; });
+
+  const rows = altIds.map(id => {
+    const sep = separations[id] || {};
+    const dPlus = Number(sep.d_plus ?? 0);
+    const dMinus = Number(sep.d_minus ?? 0);
+    const total = dPlus + dMinus;
+    const calculatedV = total > 0 ? dMinus / total : 0;
+    const rank = rankMap[id];
+
+    return [
+      altName(id),
+      dMinus,
+      dPlus,
+      `${dMinus.toFixed(6)} / (${dMinus.toFixed(6)} + ${dPlus.toFixed(6)})`,
+      rank?.topsis_score ?? calculatedV,
+    ];
+  });
+
+  return (
+    <TabCard
+      title="Nilai Preferensi (V)"
+      formula="Vᵢ = D⁻ᵢ / (D⁻ᵢ + D⁺ᵢ)"
+      description="Bagian ini menghitung nilai preferensi V untuk setiap alternatif. Nilai V digunakan sebagai dasar penentuan ranking akhir."
+    >
+      <PreferenceFormulaCard />
+      <CalculationTable
+        headers={['Alternatif', 'D⁻ᵢ', 'D⁺ᵢ', 'Perhitungan Vᵢ', 'Vᵢ (Nilai Preferensi)']}
+        rows={rows}
+        highlightCol={4}
       />
     </TabCard>
   );
@@ -228,15 +297,15 @@ function RankingTab({ rankings, alternatives }) {
   return (
     <TabCard
       title="Ranking Akhir"
-      formula="Ranking berdasarkan nilai Ci dari terbesar ke terkecil"
-      description="Alternatif dengan nilai Ci tertinggi merupakan alternatif terbaik karena paling dekat dengan solusi ideal positif dan paling jauh dari solusi ideal negatif."
+      formula="Ranking berdasarkan nilai V dari terbesar ke terkecil"
+      description="Alternatif dengan nilai V tertinggi merupakan alternatif terbaik karena paling dekat dengan solusi ideal positif dan paling jauh dari solusi ideal negatif."
     >
       <table className="dss-table">
         <thead>
           <tr>
             <th style={{ width: 60, textAlign: 'center' }}>Rank</th>
             <th>Nama Mouse</th>
-            <th>Ci Score</th>
+            <th>V Score</th>
             <th style={{ width: 200 }}>Score Bar</th>
           </tr>
         </thead>

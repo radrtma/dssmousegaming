@@ -1,11 +1,51 @@
 // src/pages/Dashboard.jsx
-import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Plus, Play, Cpu, TrendingUp, MousePointer2, BarChart3 } from 'lucide-react';
+import {
+  Plus, Play, Cpu, TrendingUp, MousePointer2, BarChart3,
+  Users, BookOpen, Target, CheckCircle2
+} from 'lucide-react';
 import RecommendationCard from '../components/RecommendationCard';
 import LeaderboardTable   from '../components/LeaderboardTable';
 import { SmallMouseIcon } from '../components/MouseIcon';
 import { formatScore }    from '../utils/topsisEngine';
+import bestarPhoto         from '../assets/team-bestar.png';
+import raffiPhoto         from '../assets/team-raffi.jpeg';
+import fajarPhoto     from '../assets/team-fajar.jpeg';
+import ridwhanPhoto      from '../assets/team-ridhwan.jpeg';
+
+const teamMembers = [
+  {
+    name: 'Bestar Khan',
+    nim: '2407412006',
+    photo: bestarPhoto,
+  },
+  {
+    name: 'Raffi Indra Pratama',
+    nim: '2407412007',
+    photo: raffiPhoto,
+  },
+  {
+    name: 'Fajar Fathurrachman',
+    nim: '2407412020',
+    photo: fajarPhoto,
+  },
+  {
+    name: 'Ridhwan',
+    nim: 'xxx',
+    photo: ridwhanPhoto,
+  },
+];
+
+const decisionCriteria = [
+  'Harga',
+  'Sensor',
+  'DPI',
+  'Jumlah tombol',
+  'Ergonomi',
+  'Material',
+  'Berat',
+  'Tampilan',
+];
 
 export default function Dashboard({ alternatives, rankings, top3 }) {
   const navigate = useNavigate();
@@ -18,70 +58,32 @@ export default function Dashboard({ alternatives, rankings, top3 }) {
   ];
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '28px' }}>
+    <div className="dashboard-page">
 
-      {/* ── Hero Section ──────────────────────────────── */}
-      <div
-        className="glass"
-        style={{
-          borderRadius: '18px',
-          padding: '0',
-          overflow: 'hidden',
-          position: 'relative',
-          minHeight: '200px',
-          border: '1px solid var(--border-light)',
-        }}
-      >
-        {/* BG gradient */}
-        <div style={{
-          position: 'absolute', inset: 0,
-          background: 'linear-gradient(135deg, rgba(34,211,238,0.07) 0%, rgba(167,139,250,0.05) 60%, transparent 100%)',
-        }} />
-        {/* Grid overlay */}
-        <div style={{
-          position: 'absolute', inset: 0,
-          backgroundImage: 'linear-gradient(var(--border) 1px, transparent 1px), linear-gradient(90deg, var(--border) 1px, transparent 1px)',
-          backgroundSize: '40px 40px',
-          opacity: 0.25,
-        }} />
+      {/* Hero Section */}
+      <div className="glass dashboard-hero">
+        <div className="dashboard-hero-bg" />
+        <div className="dashboard-hero-grid" />
 
-        {/* Mouse silhouette bg */}
-        <div style={{
-          position: 'absolute', right: '30px', bottom: '-10px',
-          opacity: 0.07, transform: 'rotate(-15deg)',
-          pointerEvents: 'none',
-        }}>
+        <div className="dashboard-hero-mouse">
           <SmallMouseIcon color="#22d3ee" size={200} />
         </div>
 
-        {/* Content */}
-        <div style={{ position: 'relative', zIndex: 1, padding: '32px 36px' }}>
-          <div style={{ maxWidth: '600px' }}>
-            {/* Badge */}
-            <div style={{
-              display: 'inline-flex', alignItems: 'center', gap: '6px',
-              padding: '4px 12px', borderRadius: '999px',
-              background: 'rgba(34,211,238,0.12)', border: '1px solid rgba(34,211,238,0.25)',
-              color: 'var(--accent-cyan)', fontSize: '0.72rem', fontWeight: 700,
-              letterSpacing: '0.06em', textTransform: 'uppercase', marginBottom: '16px',
-            }}>
+        <div className="dashboard-hero-content">
+          <div style={{ maxWidth: '690px' }}>
+            <div className="hero-badge">
               <Cpu size={11} /> Decision Support System
             </div>
 
-            <h1 style={{
-              fontSize: 'clamp(1.4rem, 3vw, 2rem)', fontWeight: 800,
-              color: 'var(--text-primary)', lineHeight: 1.25, marginBottom: '10px',
-            }}>
-              Gaming Mouse{' '}
-              <span className="gradient-text">Decision Support System</span>
+            <h1 className="dashboard-title">
+              Pemilihan Mouse Wired Untuk Gamers
             </h1>
 
-            <p style={{ fontSize: '0.88rem', color: 'var(--text-secondary)', lineHeight: 1.65, marginBottom: '22px', maxWidth: '480px' }}>
-              Sistem rekomendasi mouse gaming berbasis metode <strong style={{ color: 'var(--accent-cyan)' }}>TOPSIS</strong>{' '}
-              (Technique for Order Preference by Similarity to Ideal Solution) dengan analisis multi-kriteria.
+            <p className="dashboard-subtitle">
+              Sistem ini membantu menentukan mouse wired gaming terbaik menggunakan metode <strong style={{ color: 'var(--accent-cyan)' }}>TOPSIS</strong>. Penilaian dilakukan melalui beberapa kriteria agar hasil rekomendasi lebih terukur, konsisten, dan mudah dibandingkan.
             </p>
 
-            <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
+            <div className="hero-actions">
               <button className="btn-primary" onClick={() => navigate('/alternatives')}>
                 <Plus size={15} />
                 Tambah Alternatif
@@ -95,26 +97,67 @@ export default function Dashboard({ alternatives, rankings, top3 }) {
         </div>
       </div>
 
-      {/* ── Stat Cards ────────────────────────────────── */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: '14px' }}>
+      {/* Study case and background */}
+      <div className="dashboard-context-grid">
+        <InfoCard
+          icon={Target}
+          title="Study Case"
+          text="Studi kasus pada sistem ini adalah pemilihan mouse wired untuk gamers. Setiap alternatif mouse dibandingkan berdasarkan harga, sensor, DPI, jumlah tombol, ergonomi, material, berat, dan tampilan. Metode TOPSIS dipakai untuk mencari alternatif yang paling dekat dengan solusi ideal positif dan paling jauh dari solusi ideal negatif."
+        />
+        <InfoCard
+          icon={BookOpen}
+          title="Latar Belakang"
+          text="Gamers sering menghadapi banyak pilihan mouse wired dengan spesifikasi yang berbeda. Keputusan yang hanya mengandalkan harga atau tampilan dapat menghasilkan pilihan yang kurang sesuai. Sistem pendukung keputusan ini menyusun proses pemilihan secara objektif melalui bobot kriteria dan perhitungan nilai preferensi."
+        />
+      </div>
+
+      {/* Criteria summary */}
+      <section className="glass criteria-card">
+        <div className="criteria-card-header">
+          <div>
+            <h2>Kriteria Penilaian</h2>
+            <p>Delapan kriteria utama yang digunakan dalam proses pemilihan mouse wired gaming.</p>
+          </div>
+          <CheckCircle2 size={24} color="var(--accent-cyan)" />
+        </div>
+        <div className="criteria-list">
+          {decisionCriteria.map(item => (
+            <span key={item} className="criteria-pill">{item}</span>
+          ))}
+        </div>
+      </section>
+
+      {/* Team members */}
+      <section>
+        <SectionHeader
+          title="Tim Pengembang"
+          subtitle="Kelompok mahasiswa Politeknik Negeri Jakarta yang mengembangkan sistem ini"
+        />
+        <div className="developer-grid">
+          {teamMembers.map((member, i) => (
+            <div key={member.nim} className="glass developer-card animate-fade-in-up" style={{ animationDelay: `${i * 0.06}s` }}>
+              <img className="developer-photo" src={member.photo} alt={member.name} />
+              <div className="developer-info">
+                <h3>{member.name}</h3>
+                <p>NIM {member.nim}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* Stat Cards */}
+      <div className="dashboard-stats-grid">
         {stats.map((s, i) => {
           const Icon = s.icon;
           return (
-            <div key={i} className="glass animate-fade-in-up" style={{
-              borderRadius: '14px', padding: '18px',
-              animationDelay: `${i * 0.07}s`,
-              border: '1px solid var(--border)',
-              transition: 'transform 0.2s',
-            }}
-              onMouseOver={e => e.currentTarget.style.transform = 'translateY(-2px)'}
-              onMouseOut={e => e.currentTarget.style.transform = 'translateY(0)'}
-            >
+            <div key={i} className="glass stat-card animate-fade-in-up" style={{ animationDelay: `${i * 0.07}s` }}>
               <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between' }}>
                 <div>
-                  <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '8px' }}>
+                  <div className="stat-label">
                     {s.label}
                   </div>
-                  <div style={{ fontSize: '1.6rem', fontWeight: 800, color: 'var(--text-primary)' }}>
+                  <div className="stat-value">
                     {s.value}
                   </div>
                 </div>
@@ -131,11 +174,11 @@ export default function Dashboard({ alternatives, rankings, top3 }) {
         })}
       </div>
 
-      {/* ── Top 3 Recommendations ─────────────────────── */}
+      {/* Top 3 Recommendations */}
       <section>
         <SectionHeader title="Top 3 Recommendation" subtitle="Mouse gaming terbaik berdasarkan perhitungan TOPSIS" />
         {top3.length > 0 ? (
-          <div style={{ display: 'flex', gap: '14px', flexWrap: 'wrap' }}>
+          <div className="recommendation-grid">
             {top3.map((item, i) => (
               <RecommendationCard key={item.alternative_id} item={item} rank={i + 1} />
             ))}
@@ -145,7 +188,7 @@ export default function Dashboard({ alternatives, rankings, top3 }) {
         )}
       </section>
 
-      {/* ── Leaderboard ───────────────────────────────── */}
+      {/* Leaderboard */}
       <section>
         <SectionHeader
           title="Leaderboard"
@@ -161,7 +204,7 @@ export default function Dashboard({ alternatives, rankings, top3 }) {
         </div>
       </section>
 
-      {/* ── Alternative Cards (quick view) ─────────────── */}
+      {/* Alternative Cards */}
       <section>
         <SectionHeader
           title="Alternative Management"
@@ -172,20 +215,11 @@ export default function Dashboard({ alternatives, rankings, top3 }) {
             </button>
           }
         />
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill,minmax(220px,1fr))', gap: '12px' }}>
+        <div className="dashboard-alt-grid">
           {alternatives.slice(0, 6).map((alt, i) => {
             const rank = rankings.find(r => r.alternative_id === alt.id);
             return (
-              <div key={alt.id} className="glass animate-fade-in-up"
-                style={{
-                  borderRadius: '12px', padding: '14px', border: '1px solid var(--border)',
-                  display: 'flex', flexDirection: 'column', gap: '8px',
-                  animationDelay: `${i * 0.06}s`,
-                  transition: 'transform 0.2s, border-color 0.2s',
-                }}
-                onMouseOver={e => { e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.borderColor = 'var(--border-light)'; }}
-                onMouseOut={e => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.borderColor = 'var(--border)'; }}
-              >
+              <div key={alt.id} className="glass alt-card animate-fade-in-up" style={{ animationDelay: `${i * 0.06}s` }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                   <SmallMouseIcon color="#22d3ee" size={24} />
                   <div style={{ flex: 1, minWidth: 0 }}>
@@ -213,12 +247,26 @@ export default function Dashboard({ alternatives, rankings, top3 }) {
   );
 }
 
+function InfoCard({ icon: Icon, title, text }) {
+  return (
+    <div className="glass info-card">
+      <div className="info-icon">
+        <Icon size={18} />
+      </div>
+      <div>
+        <h2>{title}</h2>
+        <p>{text}</p>
+      </div>
+    </div>
+  );
+}
+
 function SectionHeader({ title, subtitle, action }) {
   return (
-    <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: '14px', flexWrap: 'wrap', gap: '8px' }}>
+    <div className="section-header">
       <div>
-        <h2 style={{ fontSize: '1.05rem', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '3px' }}>{title}</h2>
-        {subtitle && <p style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>{subtitle}</p>}
+        <h2>{title}</h2>
+        {subtitle && <p>{subtitle}</p>}
       </div>
       {action}
     </div>

@@ -101,7 +101,7 @@ export function calculateTopsis(alternatives, criteria) {
   }
 
   // ── Step 6: Preference Value & Ranking ───────────────────
-  // Ci = D- / (D+ + D-)
+  // V = D- / (D+ + D-)
   const scores = Object.entries(separations).map(([altId, sep]) => {
     const total = sep.d_plus + sep.d_minus;
     const alt   = alternatives.find(a => String(a.id) === String(altId));
