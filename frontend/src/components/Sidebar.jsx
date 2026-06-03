@@ -25,7 +25,7 @@ export default function Sidebar({ isOpen = true, onNavigate }) {
   return (
     <aside className={`sidebar ${isOpen ? 'sidebar-open' : 'sidebar-closed'}`}>
       {/* Brand */}
-      <div style={{ padding: '20px 18px 16px', borderBottom: '1px solid var(--border)' }}>
+      <div className="sidebar-brand" style={{ padding: '20px 58px 16px 18px', borderBottom: '1px solid var(--border)' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
           <div style={{
             width: 34, height: 34, borderRadius: 10,

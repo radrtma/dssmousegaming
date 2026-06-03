@@ -295,6 +295,10 @@ html, body, #root {
   transform: translateX(0);
 }
 
+.sidebar-brand {
+  position: relative;
+}
+
 .sidebar-closed {
   transform: translateX(-100%);
 }
@@ -324,7 +328,8 @@ html, body, #root {
 }
 
 .sidebar-toggle.is-open {
-  left: 246px;
+  left: 181px;
+  top: 18px;
 }
 
 .sidebar-overlay {
@@ -346,6 +351,7 @@ html, body, #root {
 
 .main-content.sidebar-is-closed {
   margin-left: 0;
+  padding-left: 76px;
 }
 
 /* Dashboard */
