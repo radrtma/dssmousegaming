@@ -69,6 +69,20 @@ CREATE TABLE `kriteria` (
   `bobot` decimal(4,2) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
+--
+-- Dumping data for table `alternatif`
+--
+INSERT INTO kriteria
+(nama_kriteria, jenis, bobot)
+VALUES
+('Harga', 'Cost', 3),
+('Jenis Sensor', 'Benefit', 4),
+('DPI', 'Benefit', 4),
+('Jumlah Tombol / Customization', 'Benefit', 3),
+('Ergonomi / Bentuk Mouse', 'Benefit', 4),
+('Material & Build Quality', 'Benefit', 4),
+('Berat / Bobot Mouse', 'Cost', 1),
+('Tampilan / RGB', 'Benefit', 1);
 -- --------------------------------------------------------
 
 --
