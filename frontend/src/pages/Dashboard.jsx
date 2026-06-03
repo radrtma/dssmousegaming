@@ -30,8 +30,8 @@ const teamMembers = [
     photo: fajarPhoto,
   },
   {
-    name: 'Ridhwan',
-    nim: 'xxx',
+    name: 'Ridhwan Hilmy',
+    nim: '2407412030',
     photo: ridwhanPhoto,
   },
 ];
