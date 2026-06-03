@@ -10,7 +10,8 @@ Sistem Pendukung Keputusan (DSS / SPK) untuk rekomendasi mouse gaming terbaik me
    - Matriks Normalisasi ($R$)
    - Matriks Normalisasi Terbobot ($V$)
    - Solusi Ideal Positif ($A^+$) & Negatif ($A^-$)
-   - Jarak Solusi Ideal ($D^+$ & $D^-$) dan Nilai Preferensi ($C_i$)
+   - Jarak Solusi Ideal ($D^+$ & $D^-$) dan
+   - Nilai Preferensi ($V_i$)
    - Peringkat/Ranking Akhir
 4. **Offline Fallback**: Aplikasi secara otomatis beralih ke mode offline dengan data simulasi (mock data) dan penyimpanan local state jika backend PHP/MySQL tidak tersedia.
 
