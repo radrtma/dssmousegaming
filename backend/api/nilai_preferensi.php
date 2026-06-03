@@ -1,6 +1,6 @@
 <?php
 // ============================================================
-// api/rankings.php — REST Endpoint for Rankings & TOPSIS
+// api/nilai_preferensi.php — REST Endpoint for Nilai Preferensi
 // ============================================================
 
 header('Access-Control-Allow-Origin: *');
@@ -13,30 +13,29 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     exit;
 }
 
-require_once __DIR__ . '/../controllers/RankingController.php';
+require_once __DIR__ . '/../controllers/NilaiPreferensiController.php';
 
-$controller = new RankingController();
+$controller = new NilaiPreferensiController();
 $method     = $_SERVER['REQUEST_METHOD'];
-$action     = $_GET['action'] ?? null;
-$steps      = isset($_GET['steps']);
 
 try {
     switch ($method) {
         case 'GET':
-            if ($steps) {
-                $controller->getSteps();
-            } else {
-                $controller->index();
-            }
+            $controller->index();
             break;
 
         case 'POST':
-            $controller->calculate();
+            // Endpoint POST ini digunakan sebagai BULK UPDATE
+            $data = json_decode(file_get_contents('php://input'), true);
+            if (!is_array($data)) {
+                $data = []; // default ke empty array jika null/salah format
+            }
+            $controller->bulkStore($data);
             break;
 
         default:
             http_response_code(405);
-            echo json_encode(['success' => false, 'message' => 'Method not allowed']);
+            echo json_encode(['success' => false, 'message' => 'Method not allowed. Use GET or POST (for bulk update).']);
             break;
     }
 } catch (Exception $e) {
