@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Jun 03, 2026 at 04:07 PM
+-- Generation Time: Jun 04, 2026 at 10:20 AM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -32,29 +32,26 @@ CREATE TABLE `alternatif` (
   `nama_alternatif` varchar(100) NOT NULL,
   `harga_acuan` decimal(12,2) NOT NULL,
   `dpi_maks` int(11) NOT NULL,
-  `sensor` varchar(100) NOT NULL,
   `tombol_customization` int(11) NOT NULL,
-  `ergonomi` varchar(50) NOT NULL,
   `material` varchar(50) NOT NULL,
-  `berat` decimal(6,2) NOT NULL,
-  `tampilan` varchar(50) NOT NULL
+  `berat` decimal(6,2) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Dumping data for table `alternatif`
 --
 
-INSERT INTO `alternatif` (`id_alternatif`, `nama_alternatif`, `harga_acuan`, `dpi_maks`, `sensor`, `tombol_customization`, `ergonomi`, `material`, `berat`, `tampilan`) VALUES
-(1, 'Logitech G102 LIGHTSYNC', 255000.00, 8000, 'Gaming-grade sensor', 6, 'Simetris klasik', 'Build entry-level Logitech, kabel 2,1 m', 85.00, 'LIGHTSYNC RGB'),
-(2, 'Logitech G502 HERO', 669000.00, 25600, 'HERO 25K', 11, 'Right-handed ergonomic', 'Onboard memory, adjustable weight, PTFE feet', 121.00, 'LIGHTSYNC RGB 1 zona'),
-(3, 'Razer Cobra Wired', 569000.00, 8500, 'Razer 8.500 DPI Optical Sensor', 6, 'Right-handed symmetrical', 'Optical Mouse Switches Gen-3, PTFE feet, Speedflex', 58.00, 'Razer Chroma RGB gradient underglow'),
-(4, 'Razer DeathAdder V3 Wired', 1239000.00, 30000, 'Razer Focus Pro 30K Optical Sensor', 6, 'Right-handed ergonomic', 'Optical Mouse Switches Gen-3, PTFE feet, Speedflex', 59.00, 'Tidak ada RGB'),
-(5, 'SteelSeries Rival 3 Gen 2 Wired', 730000.00, 8500, 'TrueMove Core Optical Sensor', 6, 'Battle-tested ergonomic shape', 'Super Mesh paracord, PTFE feet, 60M click durabili', 77.00, '3-zone RGB'),
-(6, 'HyperX Pulsefire Haste 2 Wired', 749000.00, 26000, 'HyperX 26K Sensor', 6, 'Symmetrical', 'HyperFlex 2 cable, HyperX Switch 100M clicks, grip', 53.00, 'Per-LED RGB'),
-(7, 'Corsair KATAR PRO XT', 648248.00, 18000, 'High-precision optical sensor', 6, 'Compact symmetric, claw/fingertip', 'Quickstrike buttons, Omron switch, paracord cable', 73.00, '1-zone RGB scroll wheel'),
-(8, 'Corsair SABRE RGB PRO Champion Series', 939000.00, 18000, 'PixArt PMW3392 Optical Sensor', 6, 'Ergonomic palm/claw', 'Omron 50M, paracord cable, PTFE glide pads', 74.00, '2-zone RGB'),
-(9, 'Cooler Master MM730', 513000.00, 16000, 'PixArt Optical Sensor', 6, 'Ergonomic right-handed', 'Rubber/PTFE material, ultraweave cable, 70M switch', 48.00, '16.7M RGB'),
-(10, 'Glorious Model O 2 Mini Wired', 889378.00, 26000, 'Glorious BAMF 2.0 Optical', 6, 'Right-handed symmetrical, small-medium hand', '80M mechanical switches, PTFE G-Skates, Ascended c', 49.00, '16.8M RGB, 8 effects');
+INSERT INTO `alternatif` (`id_alternatif`, `nama_alternatif`, `harga_acuan`, `dpi_maks`, `tombol_customization`, `material`, `berat`) VALUES
+(1, 'Logitech G102 LIGHTSYNC', 255000.00, 8000, 6, 'Build entry-level Logitech, kabel 2.1 m', 85.00),
+(2, 'Logitech G502 HERO', 669000.00, 25600, 11, 'Onboard memory, adjustable weight, PTFE feet', 121.00),
+(3, 'Razer Cobra Wired', 569000.00, 8500, 6, 'Optical Mouse Switches Gen-3, PTFE feet, Speedflex', 58.00),
+(4, 'Razer DeathAdder V3 Wired', 1239000.00, 30000, 6, 'Optical Mouse Switches Gen-3, PTFE feet, Speedflex', 59.00),
+(5, 'SteelSeries Rival 3 Gen 2 Wired', 730000.00, 8500, 6, 'Super Mesh paracord, PTFE feet, 60M click durabili', 77.00),
+(6, 'HyperX Pulsefire Haste 2 Wired', 749000.00, 26000, 6, 'HyperFlex 2 cable, HyperX Switch 100M clicks, grip', 53.00),
+(7, 'Corsair KATAR PRO XT', 648248.00, 18000, 6, 'Quickstrike buttons, Omron switch, paracord cable', 73.00),
+(8, 'Corsair SABRE RGB PRO Champion Series', 939000.00, 18000, 6, 'Omron 50M, paracord cable, PTFE glide pads', 74.00),
+(9, 'Cooler Master MM730', 513000.00, 16000, 6, 'Rubber/PTFE material, ultraweave cable, 70M switch', 48.00),
+(10, 'Glorious Model O 2 Mini Wired', 889378.00, 26000, 6, '80M mechanical switches, PTFE G-Skates, Ascended c', 49.00);
 
 -- --------------------------------------------------------
 
@@ -68,6 +65,17 @@ CREATE TABLE `kriteria` (
   `jenis` enum('Benefit','Cost') NOT NULL,
   `bobot` decimal(4,2) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `kriteria`
+--
+
+INSERT INTO `kriteria` (`id_kriteria`, `nama_kriteria`, `jenis`, `bobot`) VALUES
+(1, 'Harga', 'Cost', 3.00),
+(2, 'DPI', 'Benefit', 4.00),
+(3, 'Jumlah Tombol / Customization', 'Benefit', 3.00),
+(4, 'Material & Build Quality', 'Benefit', 4.00),
+(5, 'Berat / Bobot Mouse', 'Cost', 1.00);
 
 -- --------------------------------------------------------
 
@@ -116,7 +124,7 @@ ALTER TABLE `kriteria`
 --
 ALTER TABLE `nilai_preferensi`
   ADD PRIMARY KEY (`id_preferensi`),
-  ADD KEY `fk_preferensi_alternatif` (`id_alternatif`);
+  ADD UNIQUE KEY `id_alternatif` (`id_alternatif`);
 
 --
 -- Indexes for table `penilaian`
@@ -140,7 +148,7 @@ ALTER TABLE `alternatif`
 -- AUTO_INCREMENT for table `kriteria`
 --
 ALTER TABLE `kriteria`
-  MODIFY `id_kriteria` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id_kriteria` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
 
 --
 -- AUTO_INCREMENT for table `nilai_preferensi`
