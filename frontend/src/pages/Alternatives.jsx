@@ -6,7 +6,7 @@ import AlternativeForm from '../components/AlternativeForm';
 import { SmallMouseIcon } from '../components/MouseIcon';
 import { formatScore } from '../utils/topsisEngine';
 
-export default function Alternatives({ alternatives, rankings, onAdd, onUpdate, onDelete }) {
+export default function Alternatives({ alternatives, rankings, apiError, onAdd, onUpdate, onDelete }) {
   const [isAddOpen, setIsAddOpen] = useState(false);
   const [editItem, setEditItem] = useState(null);
   const [deleteItem, setDeleteItem] = useState(null);
@@ -16,8 +16,7 @@ export default function Alternatives({ alternatives, rankings, onAdd, onUpdate, 
 
   const filtered = alternatives.filter(a =>
     (a.name || '').toLowerCase().includes(search.toLowerCase()) ||
-    (a.sensor || '').toLowerCase().includes(search.toLowerCase()) ||
-    (a.tampilan || '').toLowerCase().includes(search.toLowerCase())
+    (a.material || '').toLowerCase().includes(search.toLowerCase())
   );
 
   const getRank = (id) => rankings.find(r => String(r.alternative_id) === String(id));
@@ -98,7 +97,7 @@ export default function Alternatives({ alternatives, rankings, onAdd, onUpdate, 
         <Search size={15} color="var(--text-muted)" style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)' }} />
         <input
           className="dss-input"
-          placeholder="Cari nama, sensor, atau tampilan..."
+          placeholder="Cari nama atau material..."
           value={search}
           onChange={e => setSearch(e.target.value)}
           style={{ paddingLeft: '36px', paddingRight: search ? '36px' : '13px' }}
@@ -114,9 +113,9 @@ export default function Alternatives({ alternatives, rankings, onAdd, onUpdate, 
         )}
       </div>
 
-      {formError && (
+      {(formError || apiError) && (
         <div className="glass" style={{ borderRadius: 10, padding: '12px 14px', color: '#fca5a5', border: '1px solid rgba(239,68,68,0.35)' }}>
-          {formError}
+          {formError || apiError}
         </div>
       )}
 
@@ -137,12 +136,9 @@ export default function Alternatives({ alternatives, rankings, onAdd, onUpdate, 
                   <th>Nama Mouse</th>
                   <th>Harga Acuan</th>
                   <th>DPI Maks</th>
-                  <th>Sensor</th>
                   <th>Tombol</th>
-                  <th>Ergonomi</th>
                   <th>Material</th>
                   <th>Berat</th>
-                  <th>Tampilan</th>
                   <th>Rank / V</th>
                   <th style={{ textAlign: 'center' }}>Aksi</th>
                 </tr>
@@ -161,12 +157,9 @@ export default function Alternatives({ alternatives, rankings, onAdd, onUpdate, 
                       </td>
                       <td style={{ fontWeight: 600, fontSize: '0.83rem' }}>Rp {Number(alt.price).toLocaleString('id-ID')}</td>
                       <td style={{ color: 'var(--text-secondary)', fontSize: '0.83rem' }}>{Number(alt.dpi_maks).toLocaleString('id-ID')}</td>
-                      <td><TextWithScore text={alt.sensor} score={alt.sensor_score} /></td>
                       <td><ScoreBadge value={alt.button_score} /></td>
-                      <td><TextWithScore text={alt.ergonomi} score={alt.ergonomic_score} /></td>
                       <td><TextWithScore text={alt.material} score={alt.material_score} /></td>
                       <td style={{ color: 'var(--text-secondary)', fontSize: '0.83rem' }}>{alt.weight_g}g</td>
-                      <td><TextWithScore text={alt.tampilan} score={alt.appearance_score} /></td>
                       <td>
                         {rank ? (
                           <div>

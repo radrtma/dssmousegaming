@@ -5,12 +5,9 @@ const EMPTY_FORM = {
   name: '',
   price: '',
   dpi_maks: '',
-  sensor: '',
   button_score: '',
-  ergonomi: '',
   material: '',
   weight_g: '',
-  tampilan: '',
 };
 
 export default function AlternativeForm({ initial = null, onSubmit, onCancel, loading = false }) {
@@ -23,12 +20,9 @@ export default function AlternativeForm({ initial = null, onSubmit, onCancel, lo
         name: initial.name || '',
         price: initial.price || '',
         dpi_maks: initial.dpi_maks || '',
-        sensor: initial.sensor || '',
         button_score: initial.button_score || '',
-        ergonomi: initial.ergonomi || '',
         material: initial.material || '',
         weight_g: initial.weight_g || '',
-        tampilan: initial.tampilan || '',
       });
     } else {
       setForm(EMPTY_FORM);
@@ -46,12 +40,9 @@ export default function AlternativeForm({ initial = null, onSubmit, onCancel, lo
     if (!form.name.trim()) e.name = 'Nama alternatif wajib diisi';
     if (!form.price || isNaN(form.price) || Number(form.price) < 0) e.price = 'Harga harus berupa angka positif';
     if (!form.dpi_maks || isNaN(form.dpi_maks) || Number(form.dpi_maks) < 0) e.dpi_maks = 'DPI harus berupa angka positif';
-    if (!form.sensor.trim()) e.sensor = 'Jenis sensor wajib diisi';
     if (!form.button_score || isNaN(form.button_score) || Number(form.button_score) < 0) e.button_score = 'Jumlah tombol harus berupa angka';
-    if (!form.ergonomi.trim()) e.ergonomi = 'Ergonomi wajib diisi';
     if (!form.material.trim()) e.material = 'Material wajib diisi';
     if (!form.weight_g || isNaN(form.weight_g) || Number(form.weight_g) <= 0) e.weight_g = 'Berat harus berupa angka positif';
-    if (!form.tampilan.trim()) e.tampilan = 'Tampilan wajib diisi';
     return e;
   };
 
@@ -67,12 +58,9 @@ export default function AlternativeForm({ initial = null, onSubmit, onCancel, lo
       name: form.name.trim(),
       price: Number(form.price),
       dpi_maks: Number(form.dpi_maks),
-      sensor: form.sensor.trim(),
       button_score: Number(form.button_score),
-      ergonomi: form.ergonomi.trim(),
       material: form.material.trim(),
       weight_g: Number(form.weight_g),
-      tampilan: form.tampilan.trim(),
     });
   };
 
@@ -122,24 +110,7 @@ export default function AlternativeForm({ initial = null, onSubmit, onCancel, lo
         </Field>
       </div>
 
-      <Field label="Jenis Sensor *" error={errors.sensor}>
-        <input
-          className="dss-input"
-          placeholder="cth. HERO 25K"
-          value={form.sensor}
-          onChange={e => set('sensor', e.target.value)}
-        />
-      </Field>
-
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
-        <Field label="Ergonomi / Bentuk Mouse *" error={errors.ergonomi}>
-          <input
-            className="dss-input"
-            placeholder="cth. Right-handed ergonomic"
-            value={form.ergonomi}
-            onChange={e => set('ergonomi', e.target.value)}
-          />
-        </Field>
         <Field label="Berat (gram) *" error={errors.weight_g}>
           <input
             className="dss-input"
@@ -151,27 +122,15 @@ export default function AlternativeForm({ initial = null, onSubmit, onCancel, lo
             onChange={e => set('weight_g', e.target.value)}
           />
         </Field>
+        <Field label="Material & Build Quality *" error={errors.material}>
+          <input
+            className="dss-input"
+            placeholder="cth. PTFE feet, paracord cable, optical switch"
+            value={form.material}
+            onChange={e => set('material', e.target.value)}
+          />
+        </Field>
       </div>
-
-      <Field label="Material & Build Quality *" error={errors.material}>
-        <textarea
-          className="dss-input"
-          rows={3}
-          placeholder="cth. PTFE feet, paracord cable, optical switch"
-          value={form.material}
-          onChange={e => set('material', e.target.value)}
-          style={{ resize: 'vertical', minHeight: 76 }}
-        />
-      </Field>
-
-      <Field label="Tampilan / RGB *" error={errors.tampilan}>
-        <input
-          className="dss-input"
-          placeholder="cth. LIGHTSYNC RGB"
-          value={form.tampilan}
-          onChange={e => set('tampilan', e.target.value)}
-        />
-      </Field>
 
       <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '4px' }}>
         <button type="button" className="btn-secondary" onClick={onCancel} disabled={loading}>

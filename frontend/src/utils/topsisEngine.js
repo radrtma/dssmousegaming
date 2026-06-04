@@ -1,41 +1,38 @@
 // ============================================================
-// src/utils/topsisEngine.js — TOPSIS Algorithm (JavaScript)
-// Mirrors the PHP TopsisCalculator.php for client-side use
+// src/utils/topsisEngine.js — TOPSIS Algorithm (JavaScript fallback)
+// Sinkron dengan schema database webdss.sql terbaru.
 // ============================================================
 
-/**
- * Run full TOPSIS calculation and return ranked results + all steps
- * @param {Array} alternatives - array of alternative objects
- * @param {Array} criteria     - array of criteria objects {code, weight, type}
- * @returns {Object} { rankings, steps }
- */
+function materialToScore(textValue = '') {
+  const text = String(textValue ?? '').toLowerCase();
+  let score = 7;
+  if (text.includes('ptfe')) score += 0.6;
+  if (text.includes('switch') || text.includes('omron') || text.includes('optical')) score += 0.6;
+  if (text.includes('paracord') || text.includes('speedflex') || text.includes('hyperflex') || text.includes('ultraweave') || text.includes('ascended')) score += 0.6;
+  if (text.includes('onboard') || text.includes('adjustable')) score += 0.4;
+  if (text.includes('entry-level')) score -= 0.5;
+  return Math.min(10, Math.max(1, Number(score.toFixed(1))));
+}
+
 export function calculateTopsis(alternatives, criteria) {
-  if (!alternatives || alternatives.length < 2) {
+  if (!alternatives || alternatives.length < 2 || !criteria || criteria.length === 0) {
     return { rankings: [], steps: null };
   }
 
-  // ── Step 1: Build Decision Matrix ─────────────────────────
   const decisionMatrix = {};
   for (const alt of alternatives) {
-    decisionMatrix[alt.id] = {
-      C1: Number(alt.price),
-      C2: Number(alt.sensor_score),
-      C3: Number(alt.dpi_score),
-      C4: Number(alt.button_score),
-      C5: Number(alt.ergonomic_score),
-      C6: Number(alt.material_score),
-      C7: Number(alt.weight_g),
-      C8: Number(alt.appearance_score),
-    };
+    decisionMatrix[alt.id] = {};
+    for (const criterion of criteria) {
+      const code = criterion.code;
+      decisionMatrix[alt.id][code] = getCriterionValue(alt, code);
+    }
   }
 
-  // ── Step 2: Vector Normalization ──────────────────────────
-  // r_ij = x_ij / sqrt(sum(x_ij^2))
   const sumOfSquares = {};
   for (const criterion of criteria) {
     const code = criterion.code;
     sumOfSquares[code] = Object.values(decisionMatrix).reduce(
-      (sum, row) => sum + Math.pow(row[code], 2), 0
+      (sum, row) => sum + Math.pow(Number(row[code] ?? 0), 2), 0
     );
   }
 
@@ -49,79 +46,65 @@ export function calculateTopsis(alternatives, criteria) {
     }
   }
 
-  // ── Step 3: Weighted Normalization ────────────────────────
-  // v_ij = w_j * r_ij
-  const weights = {};
-  for (const criterion of criteria) {
-    weights[criterion.code] = Number(criterion.weight);
-  }
-
+  const totalRawWeight = criteria.reduce((sum, c) => sum + Number(c.rawWeight ?? c.weight ?? 0), 0) || 1;
   const weightedMatrix = {};
   for (const [altId, row] of Object.entries(normalizedMatrix)) {
     weightedMatrix[altId] = {};
-    for (const code of Object.keys(row)) {
-      weightedMatrix[altId][code] = weights[code] * row[code];
+    for (const criterion of criteria) {
+      const code = criterion.code;
+      const weight = criterion.rawWeight !== undefined ? Number(criterion.rawWeight) / totalRawWeight : Number(criterion.weight ?? 0);
+      weightedMatrix[altId][code] = weight * Number(row[code] ?? 0);
     }
   }
 
-  // ── Step 4: Ideal Solutions ───────────────────────────────
   const idealPositive = {};
   const idealNegative = {};
 
   for (const criterion of criteria) {
-    const code   = criterion.code;
-    const type   = criterion.type;
-    const values = Object.values(weightedMatrix).map(row => row[code]);
+    const code = criterion.code;
+    const type = criterion.type;
+    const values = Object.values(weightedMatrix).map(row => Number(row[code] ?? 0));
 
     if (type === 'benefit') {
       idealPositive[code] = Math.max(...values);
       idealNegative[code] = Math.min(...values);
     } else {
-      // cost: smaller value is better → positive ideal = min
       idealPositive[code] = Math.min(...values);
       idealNegative[code] = Math.max(...values);
     }
   }
 
-  // ── Step 5: Separation Measures ──────────────────────────
-  // D+_i = sqrt(sum((v_ij - A+_j)^2))
   const separations = {};
   for (const [altId, row] of Object.entries(weightedMatrix)) {
-    let dPlus  = 0;
+    let dPlus = 0;
     let dMinus = 0;
     for (const criterion of criteria) {
       const code = criterion.code;
-      dPlus  += Math.pow(row[code] - idealPositive[code], 2);
-      dMinus += Math.pow(row[code] - idealNegative[code], 2);
+      dPlus += Math.pow(Number(row[code] ?? 0) - Number(idealPositive[code] ?? 0), 2);
+      dMinus += Math.pow(Number(row[code] ?? 0) - Number(idealNegative[code] ?? 0), 2);
     }
     separations[altId] = {
-      d_plus:  Math.sqrt(dPlus),
+      d_plus: Math.sqrt(dPlus),
       d_minus: Math.sqrt(dMinus),
     };
   }
 
-  // ── Step 6: Preference Value & Ranking ───────────────────
-  // V = D- / (D+ + D-)
   const scores = Object.entries(separations).map(([altId, sep]) => {
     const total = sep.d_plus + sep.d_minus;
-    const alt   = alternatives.find(a => String(a.id) === String(altId));
+    const alt = alternatives.find(a => String(a.id) === String(altId));
     return {
-      alternative_id:   Number(altId),
+      alternative_id: Number(altId),
       alternative_name: alt?.name ?? `Alternative ${altId}`,
-      brand:            alt?.brand ?? '',
-      d_plus:           sep.d_plus,
-      d_minus:          sep.d_minus,
-      topsis_score:     total > 0 ? sep.d_minus / total : 0,
-      tags:             alt?.tags ?? [],
-      // raw data for display
-      price:            alt?.price,
-      sensor_score:     alt?.sensor_score,
-      dpi_score:        alt?.dpi_score,
-      button_score:     alt?.button_score,
-      ergonomic_score:  alt?.ergonomic_score,
-      material_score:   alt?.material_score,
-      weight_g:         alt?.weight_g,
-      appearance_score: alt?.appearance_score,
+      brand: alt?.brand ?? '',
+      d_plus: sep.d_plus,
+      d_minus: sep.d_minus,
+      topsis_score: total > 0 ? sep.d_minus / total : 0,
+      tags: alt?.tags ?? [],
+      price: alt?.price,
+      dpi_score: alt?.dpi_maks,
+      button_score: alt?.button_score,
+      material_score: alt?.material_score,
+      weight_g: alt?.weight_g,
     };
   });
 
@@ -131,28 +114,33 @@ export function calculateTopsis(alternatives, criteria) {
   return {
     rankings: scores,
     steps: {
-      decision_matrix:   decisionMatrix,
+      decision_matrix: decisionMatrix,
       normalized_matrix: normalizedMatrix,
-      weighted_matrix:   weightedMatrix,
-      ideal_positive:    idealPositive,
-      ideal_negative:    idealNegative,
+      weighted_matrix: weightedMatrix,
+      ideal_positive: idealPositive,
+      ideal_negative: idealNegative,
       separations,
-      rankings:          scores,
+      rankings: scores,
     },
   };
 }
 
-/**
- * Format a number as percentage score (0-100)
- */
+function getCriterionValue(alt, code) {
+  switch (code) {
+    case 'C1': return Number(alt.price ?? alt.harga_acuan ?? 0);
+    case 'C2': return Number(alt.dpi_maks ?? alt.dpi_score ?? 0);
+    case 'C3': return Number(alt.tombol_customization ?? alt.button_score ?? 0);
+    case 'C4': return Number(alt.material_score ?? materialToScore(alt.material ?? ''));
+    case 'C5': return Number(alt.weight_g ?? alt.berat ?? 0);
+    default: return 0;
+  }
+}
+
 export function formatScore(score) {
   const n = Number(score);
   return Number.isFinite(n) ? (n * 100).toFixed(2) : '0.00';
 }
 
-/**
- * Get score badge color class based on rank
- */
 export function getRankColor(rank) {
   if (rank === 1) return 'gold';
   if (rank === 2) return 'silver';

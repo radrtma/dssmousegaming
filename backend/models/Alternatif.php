@@ -1,6 +1,8 @@
 <?php
 // ============================================================
-// models/Alternatif.php — Updated for new db schema (webdss.sql)
+// models/Alternatif.php — sesuai schema webdss.sql terbaru
+// Tabel alternatif berisi 6 field utama:
+// nama_alternatif, harga_acuan, dpi_maks, tombol_customization, material, berat
 // ============================================================
 
 require_once __DIR__ . '/../config/db.php';
@@ -14,9 +16,7 @@ class Alternatif {
     }
 
     public function getAll(): array {
-        $stmt = $this->db->query("
-            SELECT * FROM alternatif ORDER BY id_alternatif ASC
-        ");
+        $stmt = $this->db->query("SELECT * FROM alternatif ORDER BY id_alternatif ASC");
         return $stmt->fetchAll();
     }
 
@@ -30,22 +30,17 @@ class Alternatif {
     public function create(array $data): int {
         $stmt = $this->db->prepare("
             INSERT INTO alternatif
-                (nama_alternatif, harga_acuan, dpi_maks, sensor, tombol_customization,
-                 ergonomi, material, berat, tampilan)
+                (nama_alternatif, harga_acuan, dpi_maks, tombol_customization, material, berat)
             VALUES
-                (:nama_alternatif, :harga_acuan, :dpi_maks, :sensor, :tombol_customization,
-                 :ergonomi, :material, :berat, :tampilan)
+                (:nama_alternatif, :harga_acuan, :dpi_maks, :tombol_customization, :material, :berat)
         ");
         $stmt->execute([
             ':nama_alternatif'      => $data['nama_alternatif'],
             ':harga_acuan'          => $data['harga_acuan'],
             ':dpi_maks'             => $data['dpi_maks'],
-            ':sensor'               => $data['sensor'],
             ':tombol_customization' => $data['tombol_customization'],
-            ':ergonomi'             => $data['ergonomi'],
             ':material'             => $data['material'],
             ':berat'                => $data['berat'],
-            ':tampilan'             => $data['tampilan'],
         ]);
         return (int) $this->db->lastInsertId();
     }
@@ -56,12 +51,9 @@ class Alternatif {
                 nama_alternatif      = :nama_alternatif,
                 harga_acuan          = :harga_acuan,
                 dpi_maks             = :dpi_maks,
-                sensor               = :sensor,
                 tombol_customization = :tombol_customization,
-                ergonomi             = :ergonomi,
                 material             = :material,
-                berat                = :berat,
-                tampilan             = :tampilan
+                berat                = :berat
             WHERE id_alternatif = :id
         ");
         $stmt->execute([
@@ -69,12 +61,9 @@ class Alternatif {
             ':nama_alternatif'      => $data['nama_alternatif'],
             ':harga_acuan'          => $data['harga_acuan'],
             ':dpi_maks'             => $data['dpi_maks'],
-            ':sensor'               => $data['sensor'],
             ':tombol_customization' => $data['tombol_customization'],
-            ':ergonomi'             => $data['ergonomi'],
             ':material'             => $data['material'],
             ':berat'                => $data['berat'],
-            ':tampilan'             => $data['tampilan'],
         ]);
         return $stmt->rowCount() > 0;
     }

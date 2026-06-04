@@ -36,17 +36,6 @@ const teamMembers = [
   },
 ];
 
-const decisionCriteria = [
-  'Harga',
-  'Sensor',
-  'DPI',
-  'Jumlah tombol',
-  'Ergonomi',
-  'Material',
-  'Berat',
-  'Tampilan',
-];
-
 export default function Dashboard({ alternatives, rankings, top3, criteria = [] }) {
   const navigate = useNavigate();
 
@@ -102,12 +91,12 @@ export default function Dashboard({ alternatives, rankings, top3, criteria = [] 
         <InfoCard
           icon={Target}
           title="Study Case"
-          text="Studi kasus pada sistem ini adalah pemilihan mouse wired untuk gamers. Setiap alternatif mouse dibandingkan berdasarkan harga, sensor, DPI, jumlah tombol, ergonomi, material, berat, dan tampilan. Metode TOPSIS dipakai untuk mencari alternatif yang paling dekat dengan solusi ideal positif dan paling jauh dari solusi ideal negatif."
+          text="Studi kasus pada sistem ini adalah pemilihan mouse wired untuk gamers. Setiap alternatif mouse dibandingkan berdasarkan harga, DPI, jumlah tombol, material, dan berat. Metode TOPSIS dipakai untuk mencari alternatif yang paling dekat dengan solusi ideal positif dan paling jauh dari solusi ideal negatif."
         />
         <InfoCard
           icon={BookOpen}
           title="Latar Belakang"
-          text="Gamers sering menghadapi banyak pilihan mouse wired dengan spesifikasi yang berbeda. Keputusan yang hanya mengandalkan harga atau tampilan dapat menghasilkan pilihan yang kurang sesuai. Sistem pendukung keputusan ini menyusun proses pemilihan secara objektif melalui bobot kriteria dan perhitungan nilai preferensi."
+          text="Gamers sering menghadapi banyak pilihan mouse wired dengan spesifikasi yang berbeda. Keputusan yang hanya mengandalkan satu aspek dapat menghasilkan pilihan yang kurang sesuai. Sistem pendukung keputusan ini menyusun proses pemilihan secara objektif melalui bobot kriteria dan perhitungan nilai preferensi."
         />
       </div>
 
@@ -116,13 +105,21 @@ export default function Dashboard({ alternatives, rankings, top3, criteria = [] 
         <div className="criteria-card-header">
           <div>
             <h2>Kriteria Penilaian</h2>
-            <p>Delapan kriteria utama yang digunakan dalam proses pemilihan mouse wired gaming.</p>
+            <p>Kriteria yang digunakan diambil langsung dari tabel kriteria pada database.</p>
           </div>
           <CheckCircle2 size={24} color="var(--accent-cyan)" />
         </div>
         <div className="criteria-list">
-          {decisionCriteria.map(item => (
-            <span key={item} className="criteria-pill">{item}</span>
+          {(criteria.length > 0 ? criteria : [
+            { name: 'Harga', type: 'cost' },
+            { name: 'DPI', type: 'benefit' },
+            { name: 'Jumlah Tombol / Customization', type: 'benefit' },
+            { name: 'Material & Build Quality', type: 'benefit' },
+            { name: 'Berat / Bobot Mouse', type: 'cost' },
+          ]).map(item => (
+            <span key={item.name} className="criteria-pill">
+              {item.name} ({item.type})
+            </span>
           ))}
         </div>
       </section>

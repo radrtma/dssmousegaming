@@ -14,10 +14,9 @@ class NilaiPreferensi {
     }
 
     public function getAll(): array {
-        // Gabung dengan tabel alternatif agar frontend mendapatkan nama_alternatif dsb
         $stmt = $this->db->query("
-            SELECT np.*, a.nama_alternatif, a.harga_acuan, a.dpi_maks, a.sensor,
-                   a.tombol_customization, a.ergonomi, a.material, a.berat, a.tampilan
+            SELECT np.*, a.nama_alternatif, a.harga_acuan, a.dpi_maks,
+                   a.tombol_customization, a.material, a.berat
             FROM nilai_preferensi np
             JOIN alternatif a ON np.id_alternatif = a.id_alternatif
             ORDER BY np.peringkat ASC
@@ -26,9 +25,9 @@ class NilaiPreferensi {
     }
 
     public function truncate(): bool {
-        // Mengosongkan isi tabel
-        $stmt = $this->db->prepare("TRUNCATE TABLE nilai_preferensi");
-        return $stmt->execute();
+        $this->db->exec("DELETE FROM nilai_preferensi");
+        $this->db->exec("ALTER TABLE nilai_preferensi AUTO_INCREMENT = 1");
+        return true;
     }
 
     public function bulkCreate(array $dataList): bool {
@@ -51,7 +50,9 @@ class NilaiPreferensi {
             $this->db->commit();
             return true;
         } catch (Exception $e) {
-            $this->db->rollBack();
+            if ($this->db->inTransaction()) {
+                $this->db->rollBack();
+            }
             throw $e;
         }
     }

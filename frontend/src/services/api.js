@@ -1,10 +1,11 @@
 // ============================================================
-// src/services/api.js — API Service berbasis backend/database
-// Semua data diambil dari backend PHP dan database MySQL.
+// src/services/api.js — API Service database MySQL lewat backend PHP
 // ============================================================
 
 import axios from 'axios';
 
+// Pakai /api agar request masuk ke Vite proxy, lalu proxy meneruskan ke XAMPP.
+// Ini menghindari error CORS dan network error dari request langsung lintas port.
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '/api';
 
 const api = axios.create({
@@ -14,6 +15,7 @@ const api = axios.create({
 });
 
 const unwrap = (res) => res?.data?.data ?? res?.data ?? null;
+
 const toNumber = (value, fallback = 0) => {
   const n = Number(value);
   return Number.isFinite(n) ? n : fallback;
@@ -21,46 +23,15 @@ const toNumber = (value, fallback = 0) => {
 
 const normalizeString = (value) => String(value ?? '').trim();
 
-// Nilai numerik ini dibuat dari isi database yang bertipe teks agar TOPSIS tetap bisa menghitung kriteria kualitatif.
-function sensorToScore(sensorText = '') {
-  const text = sensorText.toLowerCase();
-  if (text.includes('focus pro') || text.includes('30k')) return 10;
-  if (text.includes('26k') || text.includes('25k') || text.includes('hero')) return 9.5;
-  if (text.includes('bamf') || text.includes('pmw3392')) return 9;
-  if (text.includes('pixart') || text.includes('truemove') || text.includes('high-precision')) return 8.5;
-  if (text.includes('gaming')) return 7.5;
-  return 7;
-}
-
-function ergonomicsToScore(textValue = '') {
-  const text = textValue.toLowerCase();
-  if (text.includes('ergonomic') && (text.includes('palm') || text.includes('right'))) return 9;
-  if (text.includes('battle-tested')) return 8.5;
-  if (text.includes('symmetrical') || text.includes('simetris')) return 8;
-  if (text.includes('compact') || text.includes('claw') || text.includes('fingertip')) return 7.5;
-  return 7;
-}
-
 function materialToScore(textValue = '') {
   const text = textValue.toLowerCase();
   let score = 7;
   if (text.includes('ptfe')) score += 0.6;
-  if (text.includes('switch') || text.includes('omron')) score += 0.6;
-  if (text.includes('paracord') || text.includes('speedflex') || text.includes('hyperflex') || text.includes('ultraweave')) score += 0.6;
+  if (text.includes('switch') || text.includes('omron') || text.includes('optical')) score += 0.6;
+  if (text.includes('paracord') || text.includes('speedflex') || text.includes('hyperflex') || text.includes('ultraweave') || text.includes('ascended')) score += 0.6;
   if (text.includes('onboard') || text.includes('adjustable')) score += 0.4;
   if (text.includes('entry-level')) score -= 0.5;
   return Math.min(10, Math.max(1, Number(score.toFixed(1))));
-}
-
-function appearanceToScore(textValue = '') {
-  const text = textValue.toLowerCase();
-  if (text.includes('tidak ada') || text.includes('no rgb')) return 6;
-  if (text.includes('16.8') || text.includes('16.7') || text.includes('chroma') || text.includes('gradient')) return 9.5;
-  if (text.includes('3-zone') || text.includes('per-led')) return 9;
-  if (text.includes('2-zone')) return 8.5;
-  if (text.includes('lightsync')) return 8.5;
-  if (text.includes('rgb')) return 8;
-  return 7;
 }
 
 export function normalizeAlternative(raw = {}) {
@@ -69,47 +40,46 @@ export function normalizeAlternative(raw = {}) {
   const price = toNumber(raw.harga_acuan ?? raw.price);
   const dpi = toNumber(raw.dpi_maks ?? raw.dpi_score ?? raw.dpi);
   const buttonCount = toNumber(raw.tombol_customization ?? raw.button_score ?? raw.button_count);
-  const weight = toNumber(raw.berat ?? raw.weight_g);
-  const sensor = normalizeString(raw.sensor);
-  const ergonomi = normalizeString(raw.ergonomi ?? raw.ergonomic_text);
   const material = normalizeString(raw.material ?? raw.material_text);
-  const tampilan = normalizeString(raw.tampilan ?? raw.appearance_text);
+  const weight = toNumber(raw.berat ?? raw.weight_g);
 
   return {
     ...raw,
     id,
+    id_alternatif: id,
     name,
-    brand: normalizeString(raw.brand),
+    nama_alternatif: name,
+    brand: normalizeString(raw.brand) || name.split(' ')[0] || '',
     price,
     harga_acuan: price,
     dpi_maks: dpi,
     dpi_score: dpi,
-    sensor,
-    sensor_score: toNumber(raw.sensor_score, sensorToScore(sensor)),
     button_score: buttonCount,
     tombol_customization: buttonCount,
-    ergonomi,
-    ergonomic_score: toNumber(raw.ergonomic_score, ergonomicsToScore(ergonomi)),
     material,
     material_score: toNumber(raw.material_score, materialToScore(material)),
     weight_g: weight,
     berat: weight,
-    tampilan,
-    appearance_score: toNumber(raw.appearance_score, appearanceToScore(tampilan)),
     tags: Array.isArray(raw.tags) ? raw.tags : [],
   };
 }
 
 export function normalizeCriteria(rawList = []) {
-  return rawList.map((item, index) => ({
-    id: toNumber(item.id_kriteria ?? item.id, index + 1),
-    code: item.code ?? `C${index + 1}`,
-    name: item.nama_kriteria ?? item.name ?? `Kriteria ${index + 1}`,
-    type: String(item.jenis ?? item.type ?? 'Benefit').toLowerCase() === 'cost' ? 'cost' : 'benefit',
-    weight: toNumber(item.bobot ?? item.weight, 0),
-    rawWeight: toNumber(item.bobot ?? item.weight, 0),
-    description: item.description ?? '',
-  }));
+  if (!Array.isArray(rawList)) return [];
+  const totalWeight = rawList.reduce((sum, item) => sum + toNumber(item.bobot ?? item.rawWeight ?? item.weight), 0) || 1;
+
+  return rawList.map((item, index) => {
+    const rawWeight = toNumber(item.bobot ?? item.rawWeight ?? item.weight, 0);
+    return {
+      id: toNumber(item.id_kriteria ?? item.id, index + 1),
+      code: item.code ?? `C${index + 1}`,
+      name: item.nama_kriteria ?? item.name ?? `Kriteria ${index + 1}`,
+      type: String(item.jenis ?? item.type ?? 'Benefit').toLowerCase() === 'cost' ? 'cost' : 'benefit',
+      weight: rawWeight / totalWeight,
+      rawWeight,
+      description: item.description ?? '',
+    };
+  });
 }
 
 export function normalizeRanking(raw = {}) {
@@ -130,12 +100,9 @@ function toBackendAlternative(data = {}) {
     nama_alternatif: normalizeString(data.name ?? data.nama_alternatif),
     harga_acuan: toNumber(data.price ?? data.harga_acuan),
     dpi_maks: toNumber(data.dpi_maks ?? data.dpi_score),
-    sensor: normalizeString(data.sensor),
     tombol_customization: toNumber(data.tombol_customization ?? data.button_score),
-    ergonomi: normalizeString(data.ergonomi ?? data.ergonomic_text),
     material: normalizeString(data.material ?? data.material_text),
     berat: toNumber(data.weight_g ?? data.berat),
-    tampilan: normalizeString(data.tampilan ?? data.appearance_text),
   };
 }
 
@@ -162,53 +129,26 @@ export const criteriaApi = {
   },
 };
 
+function normalizeTopsisPayload(res) {
+  const payload = unwrap(res) ?? {};
+  return {
+    ...res,
+    data: {
+      ...res.data,
+      data: {
+        ...payload,
+        rankings: (payload.rankings ?? []).map(normalizeRanking),
+        criteria: normalizeCriteria(payload.criteria ?? []),
+        steps: payload.steps ?? null,
+      },
+    },
+  };
+}
+
 export const rankingsApi = {
-  getLatest: async () => {
-    const res = await api.get('/rankings.php');
-    const payload = unwrap(res) ?? {};
-    return {
-      ...res,
-      data: {
-        ...res.data,
-        data: {
-          ...payload,
-          rankings: (payload.rankings ?? []).map(normalizeRanking),
-          criteria: normalizeCriteria(payload.criteria ?? []),
-        },
-      },
-    };
-  },
-  calculate: async () => {
-    const res = await api.post('/rankings.php');
-    const payload = unwrap(res) ?? {};
-    return {
-      ...res,
-      data: {
-        ...res.data,
-        data: {
-          ...payload,
-          rankings: (payload.rankings ?? []).map(normalizeRanking),
-          criteria: normalizeCriteria(payload.criteria ?? []),
-        },
-      },
-    };
-  },
-  getSteps: async () => {
-    const res = await api.get('/rankings.php?steps=1');
-    const payload = unwrap(res) ?? {};
-    return {
-      ...res,
-      data: {
-        ...res.data,
-        data: {
-          ...payload,
-          rankings: (payload.rankings ?? []).map(normalizeRanking),
-          criteria: normalizeCriteria(payload.criteria ?? []),
-          steps: payload.steps ?? null,
-        },
-      },
-    };
-  },
+  getLatest: async () => normalizeTopsisPayload(await api.get('/rankings.php')),
+  calculate: async () => normalizeTopsisPayload(await api.post('/rankings.php')),
+  getSteps: async () => normalizeTopsisPayload(await api.get('/rankings.php?steps=1')),
 };
 
 export const nilaiPreferensiApi = {

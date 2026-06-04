@@ -8,6 +8,7 @@ import { useTopsis }        from './hooks/useTopsis';
 export default function App() {
   const {
     alternatives,
+    error: alternativesError,
     addAlternative,
     updateAlternative,
     deleteAlternative,
@@ -18,7 +19,7 @@ export default function App() {
     loadFromBackend();
   }, [loadFromBackend]);
 
-  const { rankings, steps, criteria, top3 } = useTopsis(alternatives);
+  const { rankings, steps, criteria, top3, error: topsisError } = useTopsis(alternatives);
 
   return (
     <BrowserRouter>
@@ -28,6 +29,8 @@ export default function App() {
         top3={top3}
         steps={steps}
         criteria={criteria}
+        alternativesError={alternativesError}
+        topsisError={topsisError}
         onAdd={addAlternative}
         onUpdate={updateAlternative}
         onDelete={deleteAlternative}

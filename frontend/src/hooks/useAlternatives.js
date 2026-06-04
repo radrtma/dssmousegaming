@@ -19,7 +19,7 @@ export function useAlternatives() {
       setAlternatives(Array.isArray(res.data?.data) ? res.data.data : []);
     } catch (err) {
       setAlternatives([]);
-      setError(err.response?.data?.message || err.message || 'Gagal mengambil data alternatif dari database.');
+      setError(err.response?.data?.message || (err.message === 'Network Error' ? 'Network Error: frontend tidak berhasil menghubungi backend. Pastikan Apache XAMPP aktif dan Vite proxy mengarah ke /git/dssmousegaming/backend/api.' : err.message) || 'Gagal mengambil data alternatif dari database.');
     } finally {
       setLoading(false);
     }
@@ -34,7 +34,7 @@ export function useAlternatives() {
       await loadFromBackend();
       return created;
     } catch (err) {
-      const message = err.response?.data?.message || err.message || 'Gagal menambahkan alternatif.';
+      const message = err.response?.data?.message || (err.message === 'Network Error' ? 'Network Error: endpoint backend tidak bisa diakses. Cek Apache dan path backend.' : err.message) || 'Gagal menambahkan alternatif.';
       setError(message);
       throw new Error(message);
     } finally {
@@ -51,7 +51,7 @@ export function useAlternatives() {
       await loadFromBackend();
       return updated;
     } catch (err) {
-      const message = err.response?.data?.message || err.message || 'Gagal memperbarui alternatif.';
+      const message = err.response?.data?.message || (err.message === 'Network Error' ? 'Network Error: endpoint backend tidak bisa diakses. Cek Apache dan path backend.' : err.message) || 'Gagal memperbarui alternatif.';
       setError(message);
       throw new Error(message);
     } finally {
@@ -66,7 +66,7 @@ export function useAlternatives() {
       await alternativesApi.delete(id);
       await loadFromBackend();
     } catch (err) {
-      const message = err.response?.data?.message || err.message || 'Gagal menghapus alternatif.';
+      const message = err.response?.data?.message || (err.message === 'Network Error' ? 'Network Error: endpoint backend tidak bisa diakses. Cek Apache dan path backend.' : err.message) || 'Gagal menghapus alternatif.';
       setError(message);
       throw new Error(message);
     } finally {

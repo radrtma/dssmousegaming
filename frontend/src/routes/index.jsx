@@ -5,7 +5,7 @@ import Dashboard    from '../pages/Dashboard';
 import Alternatives from '../pages/Alternatives';
 import Calculation  from '../pages/Calculation';
 
-export default function AppRoutes({ alternatives, rankings, top3, steps, criteria, onAdd, onUpdate, onDelete }) {
+export default function AppRoutes({ alternatives, rankings, top3, steps, criteria, alternativesError, topsisError, onAdd, onUpdate, onDelete }) {
   const calcProps = { steps, alternatives, criteria, rankings };
 
   return (
@@ -21,6 +21,7 @@ export default function AppRoutes({ alternatives, rankings, top3, steps, criteri
             <Alternatives
               alternatives={alternatives}
               rankings={rankings}
+              apiError={alternativesError || topsisError}
               onAdd={onAdd}
               onUpdate={onUpdate}
               onDelete={onDelete}

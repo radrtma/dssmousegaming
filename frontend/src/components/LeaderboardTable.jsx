@@ -33,8 +33,9 @@ export default function LeaderboardTable({ rankings, alternatives }) {
             <th>Nama Mouse</th>
             <th>Harga Acuan</th>
             <th>DPI</th>
+            <th>Tombol</th>
+            <th>Material</th>
             <th>Berat</th>
-            <th>Sensor</th>
             <th>Nilai V</th>
           </tr>
         </thead>
@@ -87,14 +88,21 @@ export default function LeaderboardTable({ rankings, alternatives }) {
                   {item.dpi_maks ? Number(item.dpi_maks).toLocaleString('id-ID') : '—'}
                 </td>
 
+                {/* Button count */}
+                <td style={{ color: 'var(--text-secondary)', fontSize: '0.83rem' }}>
+                  {item.button_score ?? item.tombol_customization ?? '—'}
+                </td>
+
+                {/* Material */}
+                <td style={{ color: 'var(--text-secondary)', fontSize: '0.83rem', maxWidth: 240 }}>
+                  <span title={item.material} style={{ display: 'inline-block', maxWidth: 240, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                    {item.material || '—'}
+                  </span>
+                </td>
+
                 {/* Weight */}
                 <td style={{ color: 'var(--text-secondary)', fontSize: '0.83rem' }}>
                   {item.weight_g ? `${item.weight_g}g` : '—'}
-                </td>
-
-                {/* Sensor */}
-                <td style={{ color: 'var(--text-secondary)', fontSize: '0.83rem' }}>
-                  {item.sensor || (item.sensor_score ? `${item.sensor_score}/10` : '—')}
                 </td>
 
                 {/* Score */}

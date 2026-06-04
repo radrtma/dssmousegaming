@@ -34,8 +34,8 @@ const RANK_STYLES = {
 };
 
 const AUTO_TAGS = {
-  1: ['Lightweight', 'Best Sensor'],
-  2: ['Best Ergonomics'],
+  1: ['Lightweight', 'High DPI'],
+  2: ['Build Quality'],
   3: ['Budget Friendly'],
 };
 

@@ -19,12 +19,9 @@ export function useTopsis(alternatives) {
       name: a.name,
       price: a.price,
       dpi_maks: a.dpi_maks,
-      sensor: a.sensor,
       button_score: a.button_score,
-      ergonomi: a.ergonomi,
       material: a.material,
       weight_g: a.weight_g,
-      tampilan: a.tampilan,
     }))),
     [alternatives]
   );
@@ -42,7 +39,7 @@ export function useTopsis(alternatives) {
       setCriteria([]);
       setRankings([]);
       setSteps(null);
-      setError(err.response?.data?.message || err.message || 'Gagal mengambil hasil TOPSIS dari backend.');
+      setError(err.response?.data?.message || (err.message === 'Network Error' ? 'Network Error: frontend tidak berhasil menghubungi backend TOPSIS. Pastikan Apache XAMPP aktif dan proxy /api benar.' : err.message) || 'Gagal mengambil hasil TOPSIS dari backend.');
     } finally {
       setLoading(false);
     }
