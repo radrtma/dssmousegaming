@@ -1,6 +1,7 @@
 <?php
 // ============================================================
-// utils/TopsisCalculator.php — TOPSIS Algorithm Implementation
+// utils/TopsisCalculator.php — TOPSIS berbasis data database
+// Mendukung schema webdss.sql dan perhitungan dari backend.
 // ============================================================
 
 class TopsisCalculator {
@@ -8,25 +9,21 @@ class TopsisCalculator {
     private array $alternatives;
     private array $criteria;
 
-    // Intermediate results (exposed for step-by-step display)
-    public array $decisionMatrix     = [];
-    public array $normalizedMatrix   = [];
-    public array $weightedMatrix     = [];
-    public array $idealPositive      = [];
-    public array $idealNegative      = [];
-    public array $separations        = [];
-    public array $rankings           = [];
+    public array $decisionMatrix   = [];
+    public array $normalizedMatrix = [];
+    public array $weightedMatrix   = [];
+    public array $idealPositive    = [];
+    public array $idealNegative    = [];
+    public array $separations      = [];
+    public array $rankings         = [];
 
     public function __construct(array $alternatives, array $criteria) {
         $this->alternatives = $alternatives;
-        $this->criteria     = $criteria;
+        $this->criteria = $this->normalizeCriteria($criteria);
     }
 
-    // --------------------------------------------------------
-    // Main entry point
-    // --------------------------------------------------------
     public function calculate(): array {
-        if (count($this->alternatives) === 0) {
+        if (count($this->alternatives) < 2 || count($this->criteria) === 0) {
             return [];
         }
 
@@ -40,137 +37,143 @@ class TopsisCalculator {
         return $this->rankings;
     }
 
-    // --------------------------------------------------------
-    // Step 1 — Build Decision Matrix
-    // Matrix: rows = alternatives, cols = criteria
-    // --------------------------------------------------------
+    private function normalizeCriteria(array $criteria): array {
+        $normalized = [];
+        foreach ($criteria as $index => $criterion) {
+            $normalized[] = [
+                'id' => (int)($criterion['id_kriteria'] ?? $criterion['id'] ?? ($index + 1)),
+                'code' => $criterion['code'] ?? ('C' . ($index + 1)),
+                'name' => $criterion['nama_kriteria'] ?? $criterion['name'] ?? ('Kriteria ' . ($index + 1)),
+                'type' => strtolower((string)($criterion['jenis'] ?? $criterion['type'] ?? 'benefit')) === 'cost' ? 'cost' : 'benefit',
+                'weight' => (float)($criterion['bobot'] ?? $criterion['weight'] ?? 0),
+            ];
+        }
+        return $normalized;
+    }
+
     private function buildDecisionMatrix(): void {
         foreach ($this->alternatives as $alt) {
-            $this->decisionMatrix[$alt['id']] = [
-                'C1' => (float) $alt['price'],           // Harga    (cost)
-                'C2' => (float) $alt['sensor_score'],    // Sensor   (benefit)
-                'C3' => (float) $alt['dpi_score'],       // DPI      (benefit)
-                'C4' => (float) $alt['button_score'],    // Tombol   (benefit)
-                'C5' => (float) $alt['ergonomic_score'], // Ergonomi (benefit)
-                'C6' => (float) $alt['material_score'],  // Material (benefit)
-                'C7' => (float) $alt['weight_g'],        // Berat    (benefit — makin berat makin baik)
-                'C8' => (float) $alt['appearance_score'],// Tampilan (benefit)
-            ];
+            $altId = (int)($alt['id_alternatif'] ?? $alt['id'] ?? 0);
+            if ($altId <= 0) {
+                continue;
+            }
+
+            $this->decisionMatrix[$altId] = [];
+            foreach ($this->criteria as $criterion) {
+                $code = $criterion['code'];
+                $this->decisionMatrix[$altId][$code] = $this->getCriterionValue($alt, $code);
+            }
         }
     }
 
-    // --------------------------------------------------------
-    // Step 2 — Normalize using Vector Normalization
-    // r_ij = x_ij / sqrt(sum(x_ij^2))
-    // --------------------------------------------------------
+    private function getCriterionValue(array $alt, string $code): float {
+        return match ($code) {
+            'C1' => $this->num($alt['harga_acuan'] ?? $alt['price'] ?? 0),
+            'C2' => isset($alt['sensor_score']) ? $this->num($alt['sensor_score']) : $this->sensorToScore($alt['sensor'] ?? ''),
+            'C3' => $this->num($alt['dpi_maks'] ?? $alt['dpi_score'] ?? 0),
+            'C4' => $this->num($alt['tombol_customization'] ?? $alt['button_score'] ?? 0),
+            'C5' => isset($alt['ergonomic_score']) ? $this->num($alt['ergonomic_score']) : $this->ergonomicsToScore($alt['ergonomi'] ?? ''),
+            'C6' => isset($alt['material_score']) ? $this->num($alt['material_score']) : $this->materialToScore($alt['material'] ?? ''),
+            'C7' => $this->num($alt['berat'] ?? $alt['weight_g'] ?? 0),
+            'C8' => isset($alt['appearance_score']) ? $this->num($alt['appearance_score']) : $this->appearanceToScore($alt['tampilan'] ?? ''),
+            default => 0.0,
+        };
+    }
+
     private function normalize(): void {
         $sumOfSquares = [];
 
-        // Calculate sum of squares per criterion
         foreach ($this->criteria as $criterion) {
             $code = $criterion['code'];
             $sumOfSquares[$code] = 0;
             foreach ($this->decisionMatrix as $row) {
-                $sumOfSquares[$code] += pow($row[$code], 2);
+                $sumOfSquares[$code] += pow((float)($row[$code] ?? 0), 2);
             }
         }
 
-        // Normalize
         foreach ($this->decisionMatrix as $altId => $row) {
             foreach ($this->criteria as $criterion) {
                 $code = $criterion['code'];
-                $sqrt = sqrt($sumOfSquares[$code]);
-                $this->normalizedMatrix[$altId][$code] = $sqrt > 0
-                    ? $row[$code] / $sqrt
-                    : 0;
+                $sqrt = sqrt($sumOfSquares[$code] ?? 0);
+                $this->normalizedMatrix[$altId][$code] = $sqrt > 0 ? ((float)$row[$code] / $sqrt) : 0;
             }
         }
     }
 
-    // --------------------------------------------------------
-    // Step 3 — Weighted Normalization
-    // v_ij = w_j * r_ij
-    // --------------------------------------------------------
     private function weightedNormalize(): void {
-        $weights = [];
-        foreach ($this->criteria as $criterion) {
-            $weights[$criterion['code']] = (float) $criterion['weight'];
-        }
-
         foreach ($this->normalizedMatrix as $altId => $row) {
-            foreach ($row as $code => $value) {
-                $this->weightedMatrix[$altId][$code] = $weights[$code] * $value;
+            foreach ($this->criteria as $criterion) {
+                $code = $criterion['code'];
+                $weight = (float)$criterion['weight'];
+                $this->weightedMatrix[$altId][$code] = $weight * (float)($row[$code] ?? 0);
             }
         }
     }
 
-    // --------------------------------------------------------
-    // Step 4 — Find Ideal Solutions (A+ and A-)
-    // --------------------------------------------------------
     private function findIdealSolutions(): void {
         foreach ($this->criteria as $criterion) {
-            $code   = $criterion['code'];
-            $type   = $criterion['type'];   // 'benefit' or 'cost'
-            $values = array_column($this->weightedMatrix, $code);
+            $code = $criterion['code'];
+            $type = $criterion['type'];
+            $values = [];
+
+            foreach ($this->weightedMatrix as $row) {
+                $values[] = (float)($row[$code] ?? 0);
+            }
+
+            if (empty($values)) {
+                $this->idealPositive[$code] = 0;
+                $this->idealNegative[$code] = 0;
+                continue;
+            }
 
             if ($type === 'benefit') {
                 $this->idealPositive[$code] = max($values);
                 $this->idealNegative[$code] = min($values);
             } else {
-                // cost: smaller is better → positive = min
                 $this->idealPositive[$code] = min($values);
                 $this->idealNegative[$code] = max($values);
             }
         }
     }
 
-    // --------------------------------------------------------
-    // Step 5 — Separation Measures (D+ and D-)
-    // D+_i = sqrt(sum((v_ij - A+_j)^2))
-    // D-_i = sqrt(sum((v_ij - A-_j)^2))
-    // --------------------------------------------------------
     private function calculateSeparations(): void {
         foreach ($this->weightedMatrix as $altId => $row) {
-            $dPlus  = 0;
+            $dPlus = 0;
             $dMinus = 0;
 
             foreach ($this->criteria as $criterion) {
                 $code = $criterion['code'];
-                $dPlus  += pow($row[$code] - $this->idealPositive[$code], 2);
-                $dMinus += pow($row[$code] - $this->idealNegative[$code], 2);
+                $dPlus += pow((float)($row[$code] ?? 0) - (float)($this->idealPositive[$code] ?? 0), 2);
+                $dMinus += pow((float)($row[$code] ?? 0) - (float)($this->idealNegative[$code] ?? 0), 2);
             }
 
             $this->separations[$altId] = [
-                'd_plus'  => sqrt($dPlus),
+                'd_plus' => sqrt($dPlus),
                 'd_minus' => sqrt($dMinus),
             ];
         }
     }
 
-    // --------------------------------------------------------
-    // Step 6 - Preference Value (V) & Ranking
-    // V = D- / (D+ + D-)
-    // --------------------------------------------------------
     private function rank(): void {
         $scores = [];
 
         foreach ($this->separations as $altId => $sep) {
-            $dPlus  = $sep['d_plus'];
-            $dMinus = $sep['d_minus'];
-            $total  = $dPlus + $dMinus;
+            $dPlus = (float)$sep['d_plus'];
+            $dMinus = (float)$sep['d_minus'];
+            $total = $dPlus + $dMinus;
+            $alternative = $this->findAlternativeById((int)$altId);
 
-            $scores[$altId] = [
-                'alternative_id' => $altId,
-                'd_plus'         => round($dPlus, 8),
-                'd_minus'        => round($dMinus, 8),
-                'topsis_score'   => $total > 0 ? round($dMinus / $total, 6) : 0,
+            $scores[] = [
+                'alternative_id' => (int)$altId,
+                'alternative_name' => $alternative['nama_alternatif'] ?? $alternative['name'] ?? ('Alternatif ' . $altId),
+                'd_plus' => round($dPlus, 8),
+                'd_minus' => round($dMinus, 8),
+                'topsis_score' => $total > 0 ? round($dMinus / $total, 6) : 0,
             ];
         }
 
-        // Sort by score descending
         usort($scores, fn($a, $b) => $b['topsis_score'] <=> $a['topsis_score']);
 
-        // Assign rank
         foreach ($scores as $index => &$item) {
             $item['rank_position'] = $index + 1;
         }
@@ -178,18 +181,74 @@ class TopsisCalculator {
         $this->rankings = $scores;
     }
 
-    // --------------------------------------------------------
-    // Helper — Get all intermediate results for display
-    // --------------------------------------------------------
     public function getSteps(): array {
         return [
-            'decision_matrix'   => $this->decisionMatrix,
+            'decision_matrix' => $this->decisionMatrix,
             'normalized_matrix' => $this->normalizedMatrix,
-            'weighted_matrix'   => $this->weightedMatrix,
-            'ideal_positive'    => $this->idealPositive,
-            'ideal_negative'    => $this->idealNegative,
-            'separations'       => $this->separations,
-            'rankings'          => $this->rankings,
+            'weighted_matrix' => $this->weightedMatrix,
+            'ideal_positive' => $this->idealPositive,
+            'ideal_negative' => $this->idealNegative,
+            'separations' => $this->separations,
+            'rankings' => $this->rankings,
         ];
+    }
+
+    public function getCriteria(): array {
+        return $this->criteria;
+    }
+
+    private function findAlternativeById(int $id): array {
+        foreach ($this->alternatives as $alt) {
+            $altId = (int)($alt['id_alternatif'] ?? $alt['id'] ?? 0);
+            if ($altId === $id) {
+                return $alt;
+            }
+        }
+        return [];
+    }
+
+    private function num($value): float {
+        return is_numeric($value) ? (float)$value : 0.0;
+    }
+
+    private function sensorToScore(string $value): float {
+        $text = strtolower($value);
+        if (str_contains($text, 'focus pro') || str_contains($text, '30k')) return 10.0;
+        if (str_contains($text, '26k') || str_contains($text, '25k') || str_contains($text, 'hero')) return 9.5;
+        if (str_contains($text, 'bamf') || str_contains($text, 'pmw3392')) return 9.0;
+        if (str_contains($text, 'pixart') || str_contains($text, 'truemove') || str_contains($text, 'high-precision')) return 8.5;
+        if (str_contains($text, 'gaming')) return 7.5;
+        return 7.0;
+    }
+
+    private function ergonomicsToScore(string $value): float {
+        $text = strtolower($value);
+        if (str_contains($text, 'ergonomic') && (str_contains($text, 'palm') || str_contains($text, 'right'))) return 9.0;
+        if (str_contains($text, 'battle-tested')) return 8.5;
+        if (str_contains($text, 'symmetrical') || str_contains($text, 'simetris')) return 8.0;
+        if (str_contains($text, 'compact') || str_contains($text, 'claw') || str_contains($text, 'fingertip')) return 7.5;
+        return 7.0;
+    }
+
+    private function materialToScore(string $value): float {
+        $text = strtolower($value);
+        $score = 7.0;
+        if (str_contains($text, 'ptfe')) $score += 0.6;
+        if (str_contains($text, 'switch') || str_contains($text, 'omron')) $score += 0.6;
+        if (str_contains($text, 'paracord') || str_contains($text, 'speedflex') || str_contains($text, 'hyperflex') || str_contains($text, 'ultraweave')) $score += 0.6;
+        if (str_contains($text, 'onboard') || str_contains($text, 'adjustable')) $score += 0.4;
+        if (str_contains($text, 'entry-level')) $score -= 0.5;
+        return max(1.0, min(10.0, round($score, 1)));
+    }
+
+    private function appearanceToScore(string $value): float {
+        $text = strtolower($value);
+        if (str_contains($text, 'tidak ada') || str_contains($text, 'no rgb')) return 6.0;
+        if (str_contains($text, '16.8') || str_contains($text, '16.7') || str_contains($text, 'chroma') || str_contains($text, 'gradient')) return 9.5;
+        if (str_contains($text, '3-zone') || str_contains($text, 'per-led')) return 9.0;
+        if (str_contains($text, '2-zone')) return 8.5;
+        if (str_contains($text, 'lightsync')) return 8.5;
+        if (str_contains($text, 'rgb')) return 8.0;
+        return 7.0;
     }
 }

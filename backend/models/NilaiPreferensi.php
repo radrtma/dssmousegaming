@@ -16,7 +16,8 @@ class NilaiPreferensi {
     public function getAll(): array {
         // Gabung dengan tabel alternatif agar frontend mendapatkan nama_alternatif dsb
         $stmt = $this->db->query("
-            SELECT np.*, a.nama_alternatif, a.tampilan
+            SELECT np.*, a.nama_alternatif, a.harga_acuan, a.dpi_maks, a.sensor,
+                   a.tombol_customization, a.ergonomi, a.material, a.berat, a.tampilan
             FROM nilai_preferensi np
             JOIN alternatif a ON np.id_alternatif = a.id_alternatif
             ORDER BY np.peringkat ASC

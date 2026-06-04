@@ -20,7 +20,7 @@ export default function LeaderboardTable({ rankings, alternatives }) {
 
   // Enrich rankings with full alternative data
   const enriched = rankings.map(r => {
-    const alt = alternatives?.find(a => a.id === r.alternative_id) || {};
+    const alt = alternatives?.find(a => String(a.id) === String(r.alternative_id)) || {};
     return { ...r, ...alt };
   });
 
@@ -31,11 +31,11 @@ export default function LeaderboardTable({ rankings, alternatives }) {
           <tr>
             <th style={{ width: 52, textAlign: 'center' }}>Rank</th>
             <th>Nama Mouse</th>
-            <th>Brand</th>
-            <th>Harga (Rp)</th>
+            <th>Harga Acuan</th>
+            <th>DPI</th>
             <th>Berat</th>
             <th>Sensor</th>
-            <th>Score</th>
+            <th>Nilai V</th>
           </tr>
         </thead>
         <tbody>
@@ -77,14 +77,14 @@ export default function LeaderboardTable({ rankings, alternatives }) {
                   </div>
                 </td>
 
-                {/* Brand */}
-                <td style={{ color: 'var(--text-secondary)', fontSize: '0.82rem' }}>
-                  {item.brand || '—'}
-                </td>
-
                 {/* Price */}
                 <td style={{ fontWeight: 600, fontSize: '0.83rem', color: 'var(--text-primary)' }}>
                   {item.price ? `Rp ${Number(item.price).toLocaleString('id-ID')}` : '—'}
+                </td>
+
+                {/* DPI */}
+                <td style={{ color: 'var(--text-secondary)', fontSize: '0.83rem' }}>
+                  {item.dpi_maks ? Number(item.dpi_maks).toLocaleString('id-ID') : '—'}
                 </td>
 
                 {/* Weight */}
@@ -94,7 +94,7 @@ export default function LeaderboardTable({ rankings, alternatives }) {
 
                 {/* Sensor */}
                 <td style={{ color: 'var(--text-secondary)', fontSize: '0.83rem' }}>
-                  {item.sensor_score ? `${item.sensor_score}/10` : '—'}
+                  {item.sensor || (item.sensor_score ? `${item.sensor_score}/10` : '—')}
                 </td>
 
                 {/* Score */}

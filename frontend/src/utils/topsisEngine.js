@@ -146,7 +146,8 @@ export function calculateTopsis(alternatives, criteria) {
  * Format a number as percentage score (0-100)
  */
 export function formatScore(score) {
-  return (score * 100).toFixed(2);
+  const n = Number(score);
+  return Number.isFinite(n) ? (n * 100).toFixed(2) : '0.00';
 }
 
 /**

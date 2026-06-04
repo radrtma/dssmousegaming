@@ -1,70 +1,87 @@
 // src/pages/Alternatives.jsx
 import { useState } from 'react';
 import { Plus, Pencil, Trash2, Search, MousePointer2, X } from 'lucide-react';
-import Modal          from '../components/Modal';
+import Modal from '../components/Modal';
 import AlternativeForm from '../components/AlternativeForm';
 import { SmallMouseIcon } from '../components/MouseIcon';
-import { formatScore }    from '../utils/topsisEngine';
+import { formatScore } from '../utils/topsisEngine';
 
 export default function Alternatives({ alternatives, rankings, onAdd, onUpdate, onDelete }) {
-  const [isAddOpen,  setIsAddOpen]  = useState(false);
-  const [editItem,   setEditItem]   = useState(null);
+  const [isAddOpen, setIsAddOpen] = useState(false);
+  const [editItem, setEditItem] = useState(null);
   const [deleteItem, setDeleteItem] = useState(null);
-  const [search,     setSearch]     = useState('');
-  const [loading,    setLoading]    = useState(false);
+  const [search, setSearch] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [formError, setFormError] = useState(null);
 
   const filtered = alternatives.filter(a =>
-    a.name.toLowerCase().includes(search.toLowerCase()) ||
-    (a.brand || '').toLowerCase().includes(search.toLowerCase())
+    (a.name || '').toLowerCase().includes(search.toLowerCase()) ||
+    (a.sensor || '').toLowerCase().includes(search.toLowerCase()) ||
+    (a.tampilan || '').toLowerCase().includes(search.toLowerCase())
   );
 
-  const getRank = (id) => rankings.find(r => r.alternative_id === id);
+  const getRank = (id) => rankings.find(r => String(r.alternative_id) === String(id));
 
   const handleAdd = async (data) => {
     setLoading(true);
-    await onAdd(data);
-    setLoading(false);
-    setIsAddOpen(false);
+    setFormError(null);
+    try {
+      await onAdd(data);
+      setIsAddOpen(false);
+    } catch (err) {
+      setFormError(err.message);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleUpdate = async (data) => {
     setLoading(true);
-    await onUpdate(editItem.id, data);
-    setLoading(false);
-    setEditItem(null);
+    setFormError(null);
+    try {
+      await onUpdate(editItem.id, data);
+      setEditItem(null);
+    } catch (err) {
+      setFormError(err.message);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleDelete = async () => {
     setLoading(true);
-    await onDelete(deleteItem.id);
-    setLoading(false);
-    setDeleteItem(null);
+    setFormError(null);
+    try {
+      await onDelete(deleteItem.id);
+      setDeleteItem(null);
+    } catch (err) {
+      setFormError(err.message);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
-
-      {/* Header */}
       <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', flexWrap: 'wrap', gap: '12px' }}>
         <div>
           <h1 style={{ fontSize: '1.4rem', fontWeight: 800, color: 'var(--text-primary)', marginBottom: '4px' }}>
             Alternatif Mouse Gaming
           </h1>
           <p style={{ fontSize: '0.83rem', color: 'var(--text-muted)' }}>
-            Kelola daftar alternatif yang akan dievaluasi menggunakan TOPSIS
+            Data pada halaman ini diambil langsung dari tabel alternatif di database.
           </p>
         </div>
-        <button className="btn-primary" onClick={() => setIsAddOpen(true)}>
+        <button className="btn-primary" onClick={() => { setFormError(null); setIsAddOpen(true); }}>
           <Plus size={15} /> Tambah Alternatif
         </button>
       </div>
 
-      {/* Stats strip */}
       <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
         {[
           { label: 'Total Alternatif', value: alternatives.length, color: '#22d3ee' },
-          { label: 'Sudah Diranking',  value: rankings.length,     color: '#a78bfa' },
-          { label: 'Hasil Pencarian',  value: filtered.length,     color: '#34d399' },
+          { label: 'Sudah Diranking', value: rankings.length, color: '#a78bfa' },
+          { label: 'Hasil Pencarian', value: filtered.length, color: '#34d399' },
         ].map((s, i) => (
           <div key={i} className="glass" style={{
             borderRadius: '10px', padding: '10px 18px',
@@ -77,12 +94,11 @@ export default function Alternatives({ alternatives, rankings, onAdd, onUpdate, 
         ))}
       </div>
 
-      {/* Search */}
-      <div style={{ position: 'relative', maxWidth: '380px' }}>
+      <div style={{ position: 'relative', maxWidth: '420px' }}>
         <Search size={15} color="var(--text-muted)" style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)' }} />
         <input
           className="dss-input"
-          placeholder="Cari nama mouse atau brand..."
+          placeholder="Cari nama, sensor, atau tampilan..."
           value={search}
           onChange={e => setSearch(e.target.value)}
           style={{ paddingLeft: '36px', paddingRight: search ? '36px' : '13px' }}
@@ -98,13 +114,18 @@ export default function Alternatives({ alternatives, rankings, onAdd, onUpdate, 
         )}
       </div>
 
-      {/* Table card */}
+      {formError && (
+        <div className="glass" style={{ borderRadius: 10, padding: '12px 14px', color: '#fca5a5', border: '1px solid rgba(239,68,68,0.35)' }}>
+          {formError}
+        </div>
+      )}
+
       <div className="glass" style={{ borderRadius: '16px', overflow: 'hidden', border: '1px solid var(--border)' }}>
         {filtered.length === 0 ? (
           <div style={{ textAlign: 'center', padding: '48px', color: 'var(--text-muted)' }}>
             <MousePointer2 size={36} style={{ margin: '0 auto 12px', opacity: 0.4 }} />
             <p style={{ fontSize: '0.9rem' }}>
-              {search ? 'Tidak ada hasil pencarian.' : 'Belum ada alternatif. Klik "+ Tambah Alternatif".'}
+              {search ? 'Tidak ada hasil pencarian.' : 'Database alternatif masih kosong.'}
             </p>
           </div>
         ) : (
@@ -114,16 +135,15 @@ export default function Alternatives({ alternatives, rankings, onAdd, onUpdate, 
                 <tr>
                   <th style={{ width: 42, textAlign: 'center' }}>#</th>
                   <th>Nama Mouse</th>
-                  <th>Brand</th>
-                  <th>Harga (Rp)</th>
+                  <th>Harga Acuan</th>
+                  <th>DPI Maks</th>
                   <th>Sensor</th>
-                  <th>DPI</th>
                   <th>Tombol</th>
                   <th>Ergonomi</th>
                   <th>Material</th>
                   <th>Berat</th>
                   <th>Tampilan</th>
-                  <th>Rank / Score</th>
+                  <th>Rank / V</th>
                   <th style={{ textAlign: 'center' }}>Aksi</th>
                 </tr>
               </thead>
@@ -139,17 +159,14 @@ export default function Alternatives({ alternatives, rankings, onAdd, onUpdate, 
                           <span style={{ fontWeight: 600, fontSize: '0.85rem' }}>{alt.name}</span>
                         </div>
                       </td>
-                      <td style={{ color: 'var(--text-secondary)', fontSize: '0.82rem' }}>{alt.brand || '—'}</td>
-                      <td style={{ fontWeight: 600, fontSize: '0.83rem' }}>
-                        {Number(alt.price).toLocaleString('id-ID')}
-                      </td>
-                      <td><ScoreBadge value={alt.sensor_score} /></td>
-                      <td><ScoreBadge value={alt.dpi_score} /></td>
+                      <td style={{ fontWeight: 600, fontSize: '0.83rem' }}>Rp {Number(alt.price).toLocaleString('id-ID')}</td>
+                      <td style={{ color: 'var(--text-secondary)', fontSize: '0.83rem' }}>{Number(alt.dpi_maks).toLocaleString('id-ID')}</td>
+                      <td><TextWithScore text={alt.sensor} score={alt.sensor_score} /></td>
                       <td><ScoreBadge value={alt.button_score} /></td>
-                      <td><ScoreBadge value={alt.ergonomic_score} /></td>
-                      <td><ScoreBadge value={alt.material_score} /></td>
+                      <td><TextWithScore text={alt.ergonomi} score={alt.ergonomic_score} /></td>
+                      <td><TextWithScore text={alt.material} score={alt.material_score} /></td>
                       <td style={{ color: 'var(--text-secondary)', fontSize: '0.83rem' }}>{alt.weight_g}g</td>
-                      <td><ScoreBadge value={alt.appearance_score} /></td>
+                      <td><TextWithScore text={alt.tampilan} score={alt.appearance_score} /></td>
                       <td>
                         {rank ? (
                           <div>
@@ -157,17 +174,17 @@ export default function Alternatives({ alternatives, rankings, onAdd, onUpdate, 
                               #{rank.rank_position}
                             </span>
                             <span style={{ color: 'var(--text-muted)', fontSize: '0.75rem', marginLeft: 5 }}>
-                              {formatScore(rank.topsis_score)}%
+                              V={Number(rank.topsis_score).toFixed(6)}
                             </span>
                           </div>
                         ) : <span style={{ color: 'var(--text-muted)', fontSize: '0.78rem' }}>—</span>}
                       </td>
                       <td>
                         <div style={{ display: 'flex', gap: '6px', justifyContent: 'center' }}>
-                          <button className="btn-edit" onClick={() => setEditItem(alt)}>
+                          <button className="btn-edit" onClick={() => { setFormError(null); setEditItem(alt); }}>
                             <Pencil size={12} />
                           </button>
-                          <button className="btn-danger" onClick={() => setDeleteItem(alt)}>
+                          <button className="btn-danger" onClick={() => { setFormError(null); setDeleteItem(alt); }}>
                             <Trash2 size={12} />
                           </button>
                         </div>
@@ -181,7 +198,6 @@ export default function Alternatives({ alternatives, rankings, onAdd, onUpdate, 
         )}
       </div>
 
-      {/* ── Modals ── */}
       <Modal isOpen={isAddOpen} onClose={() => setIsAddOpen(false)} title="Tambah Alternatif Mouse">
         <AlternativeForm onSubmit={handleAdd} onCancel={() => setIsAddOpen(false)} loading={loading} />
       </Modal>
@@ -190,7 +206,6 @@ export default function Alternatives({ alternatives, rankings, onAdd, onUpdate, 
         <AlternativeForm initial={editItem} onSubmit={handleUpdate} onCancel={() => setEditItem(null)} loading={loading} />
       </Modal>
 
-      {/* Delete confirmation */}
       <Modal isOpen={!!deleteItem} onClose={() => setDeleteItem(null)} title="Hapus Alternatif" width="400px">
         <div style={{ textAlign: 'center', padding: '8px 0' }}>
           <div style={{
@@ -205,12 +220,11 @@ export default function Alternatives({ alternatives, rankings, onAdd, onUpdate, 
             Hapus "{deleteItem?.name}"?
           </p>
           <p style={{ fontSize: '0.82rem', color: 'var(--text-muted)', marginBottom: '24px' }}>
-            Data ini akan dihapus permanen dan ranking akan dihitung ulang.
+            Data ini akan dihapus dari database dan ranking akan dihitung ulang.
           </p>
           <div style={{ display: 'flex', gap: '10px', justifyContent: 'center' }}>
             <button className="btn-secondary" onClick={() => setDeleteItem(null)}>Batal</button>
-            <button className="btn-danger" onClick={handleDelete} disabled={loading}
-              style={{ padding: '9px 18px', fontSize: '0.85rem' }}>
+            <button className="btn-danger" onClick={handleDelete} disabled={loading} style={{ padding: '9px 18px', fontSize: '0.85rem' }}>
               {loading ? 'Menghapus...' : 'Ya, Hapus'}
             </button>
           </div>
@@ -230,7 +244,18 @@ function ScoreBadge({ value }) {
       fontSize: '0.78rem', fontWeight: 700,
       background: `${color}18`, color, border: `1px solid ${color}30`,
     }}>
-      {v}
+      {Number.isFinite(v) ? v : '—'}
     </span>
+  );
+}
+
+function TextWithScore({ text, score }) {
+  return (
+    <div style={{ display: 'flex', alignItems: 'center', gap: 8, minWidth: 170 }}>
+      <span style={{ color: 'var(--text-secondary)', fontSize: '0.8rem', maxWidth: 210, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} title={text}>
+        {text || '—'}
+      </span>
+      <ScoreBadge value={score} />
+    </div>
   );
 }

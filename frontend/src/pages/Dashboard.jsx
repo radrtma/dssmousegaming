@@ -47,12 +47,12 @@ const decisionCriteria = [
   'Tampilan',
 ];
 
-export default function Dashboard({ alternatives, rankings, top3 }) {
+export default function Dashboard({ alternatives, rankings, top3, criteria = [] }) {
   const navigate = useNavigate();
 
   const stats = [
     { label: 'Total Alternatif', value: alternatives.length, icon: MousePointer2, color: '#22d3ee' },
-    { label: 'Kriteria',         value: 8,                   icon: BarChart3,     color: '#a78bfa' },
+    { label: 'Kriteria',         value: criteria.length || 0, icon: BarChart3,     color: '#a78bfa' },
     { label: 'Top Score',        value: top3[0] ? `${formatScore(top3[0].topsis_score)}%` : '—', icon: TrendingUp, color: '#f59e0b' },
     { label: 'Metode',           value: 'TOPSIS',            icon: Cpu,           color: '#34d399' },
   ];
@@ -217,7 +217,7 @@ export default function Dashboard({ alternatives, rankings, top3 }) {
         />
         <div className="dashboard-alt-grid">
           {alternatives.slice(0, 6).map((alt, i) => {
-            const rank = rankings.find(r => r.alternative_id === alt.id);
+            const rank = rankings.find(r => String(r.alternative_id) === String(alt.id));
             return (
               <div key={alt.id} className="glass alt-card animate-fade-in-up" style={{ animationDelay: `${i * 0.06}s` }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>

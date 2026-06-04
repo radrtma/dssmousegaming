@@ -28,16 +28,16 @@ SET time_zone = "+00:00";
 --
 
 CREATE TABLE `alternatif` (
-  `id_alternatif` int(11) NOT NULL,
+  `id_alternatif` int(11) NOT NULL AUTO_INCREMENT,
   `nama_alternatif` varchar(100) NOT NULL,
   `harga_acuan` decimal(12,2) NOT NULL,
   `dpi_maks` int(11) NOT NULL,
   `sensor` varchar(100) NOT NULL,
   `tombol_customization` int(11) NOT NULL,
-  `ergonomi` varchar(50) NOT NULL,
-  `material` varchar(50) NOT NULL,
+  `ergonomi` varchar(100) NOT NULL,
+  `material` varchar(255) NOT NULL,
   `berat` decimal(6,2) NOT NULL,
-  `tampilan` varchar(50) NOT NULL
+  `tampilan` varchar(150) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
@@ -63,7 +63,7 @@ INSERT INTO `alternatif` (`id_alternatif`, `nama_alternatif`, `harga_acuan`, `dp
 --
 
 CREATE TABLE `kriteria` (
-  `id_kriteria` int(11) NOT NULL,
+  `id_kriteria` int(11) NOT NULL AUTO_INCREMENT,
   `nama_kriteria` varchar(100) NOT NULL,
   `jenis` enum('Benefit','Cost') NOT NULL,
   `bobot` decimal(4,2) NOT NULL
@@ -72,17 +72,17 @@ CREATE TABLE `kriteria` (
 --
 -- Dumping data for table `alternatif`
 --
-INSERT INTO kriteria
-(nama_kriteria, jenis, bobot)
+INSERT INTO `kriteria`
+(`id_kriteria`, `nama_kriteria`, `jenis`, `bobot`)
 VALUES
-('Harga', 'Cost', 3),
-('Jenis Sensor', 'Benefit', 4),
-('DPI', 'Benefit', 4),
-('Jumlah Tombol / Customization', 'Benefit', 3),
-('Ergonomi / Bentuk Mouse', 'Benefit', 4),
-('Material & Build Quality', 'Benefit', 4),
-('Berat / Bobot Mouse', 'Cost', 1),
-('Tampilan / RGB', 'Benefit', 1);
+(1, 'Harga', 'Cost', 3),
+(2, 'Jenis Sensor', 'Benefit', 4),
+(3, 'DPI', 'Benefit', 4),
+(4, 'Jumlah Tombol / Customization', 'Benefit', 3),
+(5, 'Ergonomi / Bentuk Mouse', 'Benefit', 4),
+(6, 'Material & Build Quality', 'Benefit', 4),
+(7, 'Berat / Bobot Mouse', 'Cost', 1),
+(8, 'Tampilan / RGB', 'Benefit', 1);
 -- --------------------------------------------------------
 
 --
@@ -90,7 +90,7 @@ VALUES
 --
 
 CREATE TABLE `nilai_preferensi` (
-  `id_preferensi` int(11) NOT NULL,
+  `id_preferensi` int(11) NOT NULL AUTO_INCREMENT,
   `id_alternatif` int(11) NOT NULL,
   `nilai_preferensi` decimal(10,6) NOT NULL,
   `peringkat` int(11) NOT NULL
@@ -103,7 +103,7 @@ CREATE TABLE `nilai_preferensi` (
 --
 
 CREATE TABLE `penilaian` (
-  `id_penilaian` int(11) NOT NULL,
+  `id_penilaian` int(11) NOT NULL AUTO_INCREMENT,
   `id_alternatif` int(11) NOT NULL,
   `id_kriteria` int(11) NOT NULL,
   `nilai` decimal(10,2) NOT NULL
@@ -148,25 +148,25 @@ ALTER TABLE `penilaian`
 -- AUTO_INCREMENT for table `alternatif`
 --
 ALTER TABLE `alternatif`
-  MODIFY `id_alternatif` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=11;
+  AUTO_INCREMENT=11;
 
 --
 -- AUTO_INCREMENT for table `kriteria`
 --
 ALTER TABLE `kriteria`
-  MODIFY `id_kriteria` int(11) NOT NULL AUTO_INCREMENT;
+  AUTO_INCREMENT=9;
 
 --
 -- AUTO_INCREMENT for table `nilai_preferensi`
 --
 ALTER TABLE `nilai_preferensi`
-  MODIFY `id_preferensi` int(11) NOT NULL AUTO_INCREMENT;
+  AUTO_INCREMENT=1;
 
 --
 -- AUTO_INCREMENT for table `penilaian`
 --
 ALTER TABLE `penilaian`
-  MODIFY `id_penilaian` int(11) NOT NULL AUTO_INCREMENT;
+  AUTO_INCREMENT=1;
 
 --
 -- Constraints for dumped tables

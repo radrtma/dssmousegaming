@@ -13,7 +13,7 @@ export default function AppRoutes({ alternatives, rankings, top3, steps, criteri
       <Route element={<MainLayout />}>
         <Route
           index
-          element={<Dashboard alternatives={alternatives} rankings={rankings} top3={top3} />}
+          element={<Dashboard alternatives={alternatives} rankings={rankings} top3={top3} criteria={criteria} />}
         />
         <Route
           path="alternatives"

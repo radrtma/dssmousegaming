@@ -305,13 +305,13 @@ function RankingTab({ rankings, alternatives }) {
           <tr>
             <th style={{ width: 60, textAlign: 'center' }}>Rank</th>
             <th>Nama Mouse</th>
-            <th>V Score</th>
+            <th>Nilai V</th>
             <th style={{ width: 200 }}>Score Bar</th>
           </tr>
         </thead>
         <tbody>
           {rankings.map(item => {
-            const alt   = alternatives.find(a => a.id === item.alternative_id);
+            const alt   = alternatives.find(a => String(a.id) === String(item.alternative_id));
             const name  = alt?.name ?? item.alternative_name ?? `Alt-${item.alternative_id}`;
             const rank  = item.rank_position;
             const color = RANK_COLOR[rank] || '#22d3ee';
