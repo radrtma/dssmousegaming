@@ -34,7 +34,9 @@ export default function CalculationTable({ headers, rows, highlightCol = null, c
                   fontFamily: ci > 0 ? 'monospace' : 'inherit',
                   fontSize: ci > 0 ? '0.8rem' : fontSize,
                 }}>
-                  {typeof cell === 'number' ? cell.toFixed(6) : cell}
+                  {typeof cell === 'number'
+                    ? (cell % 1 === 0 ? cell : cell.toFixed(4))
+                    : cell}
                 </td>
               ))}
             </tr>
@@ -62,7 +64,7 @@ export function IdealSolutionTable({ criteria, idealPositive, idealNegative }) {
             <td style={{ fontWeight: 700, color: '#22d3ee' }}>A⁺ (Ideal Positif)</td>
             {criteria.map(c => (
               <td key={c.code} style={{ fontFamily: 'monospace', color: '#22d3ee' }}>
-                {Number(idealPositive[c.code]).toFixed(6)}
+                {Number(idealPositive[c.code]).toFixed(4)}
               </td>
             ))}
           </tr>
@@ -70,7 +72,7 @@ export function IdealSolutionTable({ criteria, idealPositive, idealNegative }) {
             <td style={{ fontWeight: 700, color: '#a78bfa' }}>A⁻ (Ideal Negatif)</td>
             {criteria.map(c => (
               <td key={c.code} style={{ fontFamily: 'monospace', color: '#a78bfa' }}>
-                {Number(idealNegative[c.code]).toFixed(6)}
+                {Number(idealNegative[c.code]).toFixed(4)}
               </td>
             ))}
           </tr>

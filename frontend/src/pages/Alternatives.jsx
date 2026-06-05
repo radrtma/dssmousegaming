@@ -167,7 +167,7 @@ export default function Alternatives({ alternatives, rankings, apiError, onAdd, 
                               #{rank.rank_position}
                             </span>
                             <span style={{ color: 'var(--text-muted)', fontSize: '0.75rem', marginLeft: 5 }}>
-                              V={Number(rank.topsis_score).toFixed(6)}
+                              V={Number(rank.topsis_score).toFixed(4)}
                             </span>
                           </div>
                         ) : <span style={{ color: 'var(--text-muted)', fontSize: '0.78rem' }}>—</span>}

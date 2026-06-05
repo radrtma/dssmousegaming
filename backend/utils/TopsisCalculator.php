@@ -177,9 +177,9 @@ class TopsisCalculator {
             $scores[] = [
                 'alternative_id' => (int)$altId,
                 'alternative_name' => $alternative['nama_alternatif'] ?? $alternative['name'] ?? ('Alternatif ' . $altId),
-                'd_plus' => round($dPlus, 8),
-                'd_minus' => round($dMinus, 8),
-                'topsis_score' => $total > 0 ? round($dMinus / $total, 6) : 0,
+                'd_plus' => round($dPlus, 4),
+                'd_minus' => round($dMinus, 4),
+                'topsis_score' => $total > 0 ? round($dMinus / $total, 4) : 0,
             ];
         }
 

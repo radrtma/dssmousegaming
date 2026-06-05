@@ -39,6 +39,27 @@ export default function Calculation({ steps, alternatives, criteria, rankings })
       ...criteria.map(c => Number(matrix[id]?.[c.code] ?? 0)),
     ]);
 
+  // Build decision matrix rows with human-readable formatting
+  const buildMatrixRows = () =>
+    altIds.map(id => {
+      const alt = alternatives.find(a => String(a.id) === String(id));
+      if (!alt) return [altName(id), ...criteria.map(() => '—')];
+      
+      return [
+        alt.name,
+        ...criteria.map(c => {
+          switch (c.code) {
+            case 'C1': return `Rp ${Number(alt.price).toLocaleString('id-ID')}`;
+            case 'C2': return `${Number(alt.dpi_maks).toLocaleString('id-ID')} DPI`;
+            case 'C3': return `${alt.button_score} Tombol`;
+            case 'C4': return `${alt.material} (Skor: ${alt.material_score})`;
+            case 'C5': return `${alt.weight_g} g`;
+            default: return alt[c.code] ?? '—';
+          }
+        })
+      ];
+    });
+
   const criteriaHeaders = ['Alternatif', ...criteria.map(c => `${c.code} (${c.name})`)];
 
   return (
@@ -84,7 +105,7 @@ export default function Calculation({ steps, alternatives, criteria, rankings })
 
       {/* Tab Content */}
       <div className="animate-fade-in-up" key={activeTab}>
-        {activeTab === 'matrix'     && <MatrixTab      rows={buildRows(decision_matrix)}   headers={criteriaHeaders} criteria={criteria} />}
+        {activeTab === 'matrix'     && <MatrixTab      rows={buildMatrixRows()}   headers={criteriaHeaders} criteria={criteria} />}
         {activeTab === 'normalized' && <NormalizedTab  rows={buildRows(normalized_matrix)} headers={criteriaHeaders} criteria={criteria} />}
         {activeTab === 'weighted'   && <WeightedTab    rows={buildRows(weighted_matrix)}   headers={criteriaHeaders} criteria={criteria} />}
         {activeTab === 'ideal'      && <IdealTab       criteria={criteria} ip={ideal_positive} in_={ideal_negative} />}
@@ -149,7 +170,7 @@ function MatrixTab({ rows, headers, criteria }) {
             color: c.type === 'benefit' ? 'var(--accent-cyan)' : '#f87171',
             border: `1px solid ${c.type === 'benefit' ? 'rgba(34,211,238,0.25)' : 'rgba(239,68,68,0.25)'}`,
           }}>
-            {c.code}: {c.name} ({c.type}) · w={c.weight}
+            {c.code}: {c.name} ({c.type}) · w={Number(c.weight).toFixed(4)}
           </span>
         ))}
       </div>
@@ -270,7 +291,7 @@ function PreferenceTab({ altIds, altName, separations, rankings }) {
       altName(id),
       dMinus,
       dPlus,
-      `${dMinus.toFixed(6)} / (${dMinus.toFixed(6)} + ${dPlus.toFixed(6)})`,
+      `${dMinus.toFixed(4)} / (${dMinus.toFixed(4)} + ${dPlus.toFixed(4)})`,
       rank?.topsis_score ?? calculatedV,
     ];
   });
@@ -336,7 +357,7 @@ function RankingTab({ rankings, alternatives }) {
                 </td>
                 <td style={{ fontWeight: 600 }}>{name}</td>
                 <td style={{ fontWeight: 700, color, fontFamily: 'monospace' }}>
-                  {Number(item.topsis_score).toFixed(6)}
+                  {Number(item.topsis_score).toFixed(4)}
                   <span style={{ fontFamily: 'inherit', fontWeight: 500, color: 'var(--text-muted)', fontSize: '0.75rem', marginLeft: 4 }}>
                     ({pct}%)
                   </span>
