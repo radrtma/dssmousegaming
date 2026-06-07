@@ -1,25 +1,119 @@
 // src/pages/Alternatives.jsx
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { Plus, Pencil, Trash2, Search, MousePointer2, X } from 'lucide-react';
 import Modal from '../components/Modal';
 import AlternativeForm from '../components/AlternativeForm';
 import { SmallMouseIcon } from '../components/MouseIcon';
-import { formatScore } from '../utils/topsisEngine';
+
+const SORT_OPTIONS = [
+  { value: 'none', label: 'Default' },
+  { value: 'name', label: 'Nama Mouse' },
+  { value: 'price', label: 'Harga Acuan' },
+  { value: 'dpi_maks', label: 'DPI Maks' },
+  { value: 'button_score', label: 'Skor Tombol' },
+  { value: 'material', label: 'Material' },
+  { value: 'material_score', label: 'Skor Material' },
+  { value: 'weight_g', label: 'Berat' },
+  { value: 'rank_position', label: 'Ranking' },
+  { value: 'topsis_score', label: 'Nilai TOPSIS' },
+];
 
 export default function Alternatives({ alternatives, rankings, apiError, onAdd, onUpdate, onDelete }) {
   const [isAddOpen, setIsAddOpen] = useState(false);
   const [editItem, setEditItem] = useState(null);
   const [deleteItem, setDeleteItem] = useState(null);
   const [search, setSearch] = useState('');
+  const [sortField, setSortField] = useState('none');
+  const [sortDirection, setSortDirection] = useState('asc');
   const [loading, setLoading] = useState(false);
   const [formError, setFormError] = useState(null);
 
-  const filtered = alternatives.filter(a =>
-    (a.name || '').toLowerCase().includes(search.toLowerCase()) ||
-    (a.material || '').toLowerCase().includes(search.toLowerCase())
-  );
+  const rankMap = useMemo(() => {
+    const map = new Map();
+    rankings.forEach(rank => {
+      map.set(String(rank.alternative_id), rank);
+    });
+    return map;
+  }, [rankings]);
 
-  const getRank = (id) => rankings.find(r => String(r.alternative_id) === String(id));
+  const getRank = (id) => rankMap.get(String(id));
+
+  const filtered = useMemo(() => {
+    const keyword = search.toLowerCase();
+
+    return alternatives.filter(a =>
+      (a.name || '').toLowerCase().includes(keyword) ||
+      (a.material || '').toLowerCase().includes(keyword)
+    );
+  }, [alternatives, search]);
+
+  const sortedFiltered = useMemo(() => {
+    if (sortField === 'none') return filtered;
+
+    const getSortValue = (alt) => {
+      const rank = rankMap.get(String(alt.id));
+
+      switch (sortField) {
+        case 'name':
+          return (alt.name || '').toLowerCase();
+        case 'price':
+          return Number(alt.price);
+        case 'dpi_maks':
+          return Number(alt.dpi_maks);
+        case 'button_score':
+          return Number(alt.button_score);
+        case 'material':
+          return (alt.material || '').toLowerCase();
+        case 'material_score':
+          return Number(alt.material_score);
+        case 'weight_g':
+          return Number(alt.weight_g);
+        case 'rank_position':
+          return rank ? Number(rank.rank_position) : null;
+        case 'topsis_score':
+          return rank ? Number(rank.topsis_score) : null;
+        default:
+          return null;
+      }
+    };
+
+    const isMissing = (value) => (
+      value === null ||
+      value === undefined ||
+      value === '' ||
+      (typeof value === 'number' && !Number.isFinite(value))
+    );
+
+    return [...filtered].sort((a, b) => {
+      const valueA = getSortValue(a);
+      const valueB = getSortValue(b);
+
+      const missingA = isMissing(valueA);
+      const missingB = isMissing(valueB);
+
+      if (missingA && missingB) return 0;
+      if (missingA) return 1;
+      if (missingB) return -1;
+
+      let result;
+
+      if (typeof valueA === 'string' || typeof valueB === 'string') {
+        result = String(valueA).localeCompare(String(valueB), 'id', {
+          numeric: true,
+          sensitivity: 'base',
+        });
+      } else {
+        result = valueA - valueB;
+      }
+
+      return sortDirection === 'asc' ? result : -result;
+    });
+  }, [filtered, rankMap, sortField, sortDirection]);
+
+  const resetFilter = () => {
+    setSortField('none');
+    setSortDirection('asc');
+  };
 
   const handleAdd = async (data) => {
     setLoading(true);
@@ -80,7 +174,7 @@ export default function Alternatives({ alternatives, rankings, apiError, onAdd, 
         {[
           { label: 'Total Alternatif', value: alternatives.length, color: '#22d3ee' },
           { label: 'Sudah Diranking', value: rankings.length, color: '#a78bfa' },
-          { label: 'Hasil Pencarian', value: filtered.length, color: '#34d399' },
+          { label: 'Hasil Pencarian', value: sortedFiltered.length, color: '#34d399' },
         ].map((s, i) => (
           <div key={i} className="glass" style={{
             borderRadius: '10px', padding: '10px 18px',
@@ -93,22 +187,60 @@ export default function Alternatives({ alternatives, rankings, apiError, onAdd, 
         ))}
       </div>
 
-      <div style={{ position: 'relative', maxWidth: '420px' }}>
-        <Search size={15} color="var(--text-muted)" style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)' }} />
-        <input
+      <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap', alignItems: 'center' }}>
+        <div style={{ position: 'relative', width: '100%', maxWidth: '420px' }}>
+          <Search size={15} color="var(--text-muted)" style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)' }} />
+          <input
+            className="dss-input"
+            placeholder="Cari nama atau material..."
+            value={search}
+            onChange={e => setSearch(e.target.value)}
+            style={{ paddingLeft: '36px', paddingRight: search ? '36px' : '13px' }}
+          />
+          {search && (
+            <button onClick={() => setSearch('')} style={{
+              position: 'absolute', right: 10, top: '50%', transform: 'translateY(-50%)',
+              background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-muted)',
+              display: 'flex', alignItems: 'center',
+            }}>
+              <X size={14} />
+            </button>
+          )}
+        </div>
+
+        <select
           className="dss-input"
-          placeholder="Cari nama atau material..."
-          value={search}
-          onChange={e => setSearch(e.target.value)}
-          style={{ paddingLeft: '36px', paddingRight: search ? '36px' : '13px' }}
-        />
-        {search && (
-          <button onClick={() => setSearch('')} style={{
-            position: 'absolute', right: 10, top: '50%', transform: 'translateY(-50%)',
-            background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-muted)',
-            display: 'flex', alignItems: 'center',
-          }}>
-            <X size={14} />
+          value={sortField}
+          onChange={e => setSortField(e.target.value)}
+          style={{ width: '180px', cursor: 'pointer' }}
+          aria-label="Pilih kriteria pengurutan"
+        >
+          {SORT_OPTIONS.map(option => (
+            <option key={option.value} value={option.value}>
+              {option.label}
+            </option>
+          ))}
+        </select>
+
+        <select
+          className="dss-input"
+          value={sortDirection}
+          onChange={e => setSortDirection(e.target.value)}
+          disabled={sortField === 'none'}
+          style={{
+            width: '150px',
+            cursor: sortField === 'none' ? 'not-allowed' : 'pointer',
+            opacity: sortField === 'none' ? 0.65 : 1,
+          }}
+          aria-label="Pilih arah pengurutan"
+        >
+          <option value="asc">Ascending</option>
+          <option value="desc">Descending</option>
+        </select>
+
+        {sortField !== 'none' && (
+          <button className="btn-secondary" onClick={resetFilter} style={{ padding: '9px 14px', fontSize: '0.82rem' }}>
+            Reset Filter
           </button>
         )}
       </div>
@@ -120,7 +252,7 @@ export default function Alternatives({ alternatives, rankings, apiError, onAdd, 
       )}
 
       <div className="glass" style={{ borderRadius: '16px', overflow: 'hidden', border: '1px solid var(--border)' }}>
-        {filtered.length === 0 ? (
+        {sortedFiltered.length === 0 ? (
           <div style={{ textAlign: 'center', padding: '48px', color: 'var(--text-muted)' }}>
             <MousePointer2 size={36} style={{ margin: '0 auto 12px', opacity: 0.4 }} />
             <p style={{ fontSize: '0.9rem' }}>
@@ -144,7 +276,7 @@ export default function Alternatives({ alternatives, rankings, apiError, onAdd, 
                 </tr>
               </thead>
               <tbody>
-                {filtered.map((alt, i) => {
+                {sortedFiltered.map((alt, i) => {
                   const rank = getRank(alt.id);
                   return (
                     <tr key={alt.id} className={rank?.rank_position <= 3 ? `rank-${rank.rank_position}` : ''}>
