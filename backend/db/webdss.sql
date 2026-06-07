@@ -19,13 +19,13 @@ CREATE TABLE `alternatif` (
   `nama_alternatif` varchar(100) NOT NULL,
   `harga_acuan` decimal(12,2) NOT NULL,
   `dpi_maks` int(11) NOT NULL,
-  `tombol_customization` int(11) NOT NULL,
+  `tombol` int(11) NOT NULL,
   `material` varchar(255) NOT NULL,
   `berat` decimal(6,2) NOT NULL,
   PRIMARY KEY (`id_alternatif`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
-INSERT INTO `alternatif` (`id_alternatif`, `nama_alternatif`, `harga_acuan`, `dpi_maks`, `tombol_customization`, `material`, `berat`) VALUES
+INSERT INTO `alternatif` (`id_alternatif`, `nama_alternatif`, `harga_acuan`, `dpi_maks`, `tombol`, `material`, `berat`) VALUES
 (1, 'Logitech G102 LIGHTSYNC', 255000.00, 8000, 6, 'Build entry-level Logitech, kabel 2.1 m', 85.00),
 (2, 'Logitech G502 HERO', 669000.00, 25600, 11, 'Onboard memory, adjustable weight, PTFE feet', 121.00),
 (3, 'Razer Cobra Wired', 569000.00, 8500, 6, 'Optical Mouse Switches Gen-3, PTFE feet, Speedflex', 58.00),
@@ -48,7 +48,7 @@ CREATE TABLE `kriteria` (
 INSERT INTO `kriteria` (`id_kriteria`, `nama_kriteria`, `jenis`, `bobot`) VALUES
 (1, 'Harga', 'Cost', 3.00),
 (2, 'DPI', 'Benefit', 4.00),
-(3, 'Jumlah Tombol / Customization', 'Benefit', 3.00),
+(3, 'Jumlah Tombol', 'Benefit', 3.00),
 (4, 'Material & Build Quality', 'Benefit', 4.00),
 (5, 'Berat / Bobot Mouse', 'Cost', 1.00);
 

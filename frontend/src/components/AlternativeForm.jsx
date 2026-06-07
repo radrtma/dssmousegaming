@@ -67,7 +67,7 @@ export default function AlternativeForm({ initial = null, onSubmit, onCancel, lo
   return (
     <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
-        <Field label="Nama Mouse *" error={errors.name}>
+        <Field label="Nama Mouse" error={errors.name}>
           <input
             className="dss-input"
             placeholder="cth. Logitech G102 LIGHTSYNC"
@@ -75,7 +75,7 @@ export default function AlternativeForm({ initial = null, onSubmit, onCancel, lo
             onChange={e => set('name', e.target.value)}
           />
         </Field>
-        <Field label="Harga Acuan (Rp) *" error={errors.price}>
+        <Field label="Harga Acuan (Rp)" error={errors.price}>
           <input
             className="dss-input"
             type="number"
@@ -88,7 +88,7 @@ export default function AlternativeForm({ initial = null, onSubmit, onCancel, lo
       </div>
 
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
-        <Field label="DPI Maksimum *" error={errors.dpi_maks}>
+        <Field label="DPI Maksimum" error={errors.dpi_maks}>
           <input
             className="dss-input"
             type="number"
@@ -98,7 +98,7 @@ export default function AlternativeForm({ initial = null, onSubmit, onCancel, lo
             onChange={e => set('dpi_maks', e.target.value)}
           />
         </Field>
-        <Field label="Jumlah Tombol / Customization *" error={errors.button_score}>
+        <Field label="Jumlah Tombol" error={errors.button_score}>
           <input
             className="dss-input"
             type="number"
@@ -111,7 +111,7 @@ export default function AlternativeForm({ initial = null, onSubmit, onCancel, lo
       </div>
 
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
-        <Field label="Berat (gram) *" error={errors.weight_g}>
+        <Field label="Berat (gram)" error={errors.weight_g}>
           <input
             className="dss-input"
             type="number"
@@ -122,7 +122,7 @@ export default function AlternativeForm({ initial = null, onSubmit, onCancel, lo
             onChange={e => set('weight_g', e.target.value)}
           />
         </Field>
-        <Field label="Material & Build Quality *" error={errors.material}>
+        <Field label="Material & Build Quality" error={errors.material}>
           <input
             className="dss-input"
             placeholder="cth. PTFE feet, paracord cable, optical switch"
