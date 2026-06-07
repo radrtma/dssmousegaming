@@ -82,11 +82,11 @@ class TopsisCalculator {
 
     private function getCriterionValue(array $alt, string $code): float {
         return match ($code) {
-            'C1' => $this->num($alt['harga_acuan'] ?? $alt['price'] ?? 0),
-            'C2' => $this->num($alt['dpi_maks'] ?? $alt['dpi_score'] ?? 0),
-            'C3' => $this->num($alt['tombol_customization'] ?? $alt['button_score'] ?? 0),
+            'C1' => $this->hargaToScore($this->num($alt['harga_acuan'] ?? $alt['price'] ?? 0)),
+            'C2' => $this->dpiToScore($this->num($alt['dpi_maks'] ?? $alt['dpi_score'] ?? 0)),
+            'C3' => $this->tombolToScore($this->num($alt['tombol_customization'] ?? $alt['button_score'] ?? 0)),
             'C4' => isset($alt['material_score']) ? $this->num($alt['material_score']) : $this->materialToScore($alt['material'] ?? ''),
-            'C5' => $this->num($alt['berat'] ?? $alt['weight_g'] ?? 0),
+            'C5' => $this->beratToScore($this->num($alt['berat'] ?? $alt['weight_g'] ?? 0)),
             default => 0.0,
         };
     }
@@ -222,14 +222,48 @@ class TopsisCalculator {
         return is_numeric($value) ? (float)$value : 0.0;
     }
 
+    private function hargaToScore(float $harga): float {
+        if ($harga <= 0) return 0.0;
+        if ($harga <= 500000) return 1.0; // mencakup Rp 200.000 - Rp 500.000 dan di bawahnya
+        if ($harga > 500000 && $harga <= 750000) return 2.0;
+        if ($harga > 750000 && $harga <= 1000000) return 3.0;
+        if ($harga > 1000000 && $harga <= 1500000) return 4.0;
+        return 5.0; // > 1500000
+    }
+
+    private function dpiToScore(float $dpi): float {
+        if ($dpi < 10000) return 1.0;
+        if ($dpi >= 10000 && $dpi <= 16000) return 2.0;
+        if ($dpi > 16000 && $dpi <= 20000) return 3.0;
+        if ($dpi > 20000 && $dpi <= 26000) return 4.0;
+        return 5.0; // > 26000
+    }
+
+    private function tombolToScore(float $tombol): float {
+        if ($tombol < 6) return 1.0;
+        if ($tombol == 6) return 2.0;
+        if ($tombol >= 7 && $tombol <= 8) return 3.0;
+        if ($tombol >= 9 && $tombol <= 10) return 4.0;
+        return 5.0; // > 10
+    }
+
+    private function beratToScore(float $berat): float {
+        if ($berat < 50) return 1.0;
+        if ($berat >= 50 && $berat <= 65) return 2.0;
+        if ($berat > 65 && $berat <= 80) return 3.0;
+        if ($berat > 80 && $berat <= 100) return 4.0;
+        return 5.0; // > 100
+    }
+
     private function materialToScore(string $value): float {
-        $text = strtolower($value);
-        $score = 7.0;
-        if (str_contains($text, 'ptfe')) $score += 0.6;
-        if (str_contains($text, 'switch') || str_contains($text, 'omron') || str_contains($text, 'optical')) $score += 0.6;
-        if (str_contains($text, 'paracord') || str_contains($text, 'speedflex') || str_contains($text, 'hyperflex') || str_contains($text, 'ultraweave') || str_contains($text, 'ascended')) $score += 0.6;
-        if (str_contains($text, 'onboard') || str_contains($text, 'adjustable')) $score += 0.4;
-        if (str_contains($text, 'entry-level')) $score -= 0.5;
-        return max(1.0, min(10.0, round($score, 1)));
+        $text = strtolower(trim($value));
+        return match ($text) {
+            'standar' => 1.0,
+            'cukup' => 2.0,
+            'baik' => 3.0,
+            'sangat_baik' => 4.0,
+            'premium' => 5.0,
+            default => 3.0, // fallback default jika masih ada string mentah di database
+        };
     }
 }
