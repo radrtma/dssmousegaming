@@ -90,8 +90,8 @@ export default function Dashboard({ alternatives, rankings, top3, criteria = [] 
       <div className="dashboard-context-grid">
         <InfoCard
           icon={Target}
-          title="Study Case"
-          text="Studi kasus pada sistem ini adalah pemilihan mouse wired untuk gamers. Setiap alternatif mouse dibandingkan berdasarkan harga, DPI, jumlah tombol, material, dan berat. Metode TOPSIS dipakai untuk mencari alternatif yang paling dekat dengan solusi ideal positif dan paling jauh dari solusi ideal negatif."
+          title="Metode TOPSIS"
+          text="TOPSIS (Technique for Order Preference by Similarity to Ideal Solution) adalah metode pengambilan keputusan multikriteria yang digunakan untuk menentukan solusi terbaik dari beberapa alternatif. Konsep utamanya adalah memilih alternatif yang memiliki jarak terdekat dengan Solusi Ideal Positif dan jarak terjauh dari Solusi Ideal Negatif"
         />
         <InfoCard
           icon={BookOpen}
@@ -99,6 +99,21 @@ export default function Dashboard({ alternatives, rankings, top3, criteria = [] 
           text="Gamers sering menghadapi banyak pilihan mouse wired dengan spesifikasi yang berbeda. Keputusan yang hanya mengandalkan satu aspek dapat menghasilkan pilihan yang kurang sesuai. Sistem pendukung keputusan ini menyusun proses pemilihan secara objektif melalui bobot kriteria dan perhitungan nilai preferensi."
         />
       </div>
+
+      {/* Langkah-langkah */}
+      <section className="glass criteria-card">
+        <div className="criteria-card-header">
+          <div>
+            <h2>Langkah-Langkah Metode TOPSIS</h2>
+            <p> 1. Membuat matriks keputusan yang ternormalisasi.</p>
+            <p> 2. Membuat matriks keputusan yang ternormalisasi terbobot.</p>
+            <p>3. Menentukan matriks solusi ideal positif & matriks solusi ideal negatif.</p>
+             <p>4. Menentukan jarak antara nilai setiap alternatif dengan matriks solusi ideal positif & matriks solusi idealnegatif.</p>
+             <p>5. Menentukan nilai preferensi untuk setiap alternatif.</p>
+          </div>
+          <CheckCircle2 size={24} color="var(--accent-cyan)" />
+        </div>
+      </section>
 
       {/* Criteria summary */}
       <section className="glass criteria-card">
