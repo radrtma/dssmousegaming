@@ -3,6 +3,7 @@
 // ============================================================
 
 import axios from 'axios';
+import { getMaterialQualityLabel, getMaterialQualityScore } from '../constants/materialQuality';
 
 // Pakai /api agar request masuk ke Vite proxy, lalu proxy meneruskan ke XAMPP.
 // Ini menghindari error CORS dan network error dari request langsung lintas port.
@@ -24,14 +25,10 @@ const toNumber = (value, fallback = 0) => {
 const normalizeString = (value) => String(value ?? '').trim();
 
 function materialToScore(textValue = '') {
-  const text = textValue.toLowerCase();
-  let score = 7;
-  if (text.includes('ptfe')) score += 0.6;
-  if (text.includes('switch') || text.includes('omron') || text.includes('optical')) score += 0.6;
-  if (text.includes('paracord') || text.includes('speedflex') || text.includes('hyperflex') || text.includes('ultraweave') || text.includes('ascended')) score += 0.6;
-  if (text.includes('onboard') || text.includes('adjustable')) score += 0.4;
-  if (text.includes('entry-level')) score -= 0.5;
-  return Math.min(10, Math.max(1, Number(score.toFixed(1))));
+  // Sinkron dengan backend TopsisCalculator.php:
+  // standar=1, cukup=2, baik=3, sangat_baik=4, premium=5.
+  // Fallback 3 mengikuti default backend untuk data lama yang belum memakai combobox.
+  return getMaterialQualityScore(String(textValue ?? '').trim(), 3);
 }
 
 export function normalizeAlternative(raw = {}) {
@@ -57,6 +54,7 @@ export function normalizeAlternative(raw = {}) {
     button_score: buttonCount,
     tombol_customization: buttonCount,
     material,
+    material_label: getMaterialQualityLabel(material),
     material_score: toNumber(raw.material_score, materialToScore(material)),
     weight_g: weight,
     berat: weight,

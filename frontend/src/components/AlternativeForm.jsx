@@ -1,5 +1,6 @@
 // src/components/AlternativeForm.jsx
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
+import { MATERIAL_QUALITY_OPTIONS, normalizeMaterialQualityValue } from '../constants/materialQuality';
 
 const EMPTY_FORM = {
   name: '',
@@ -21,7 +22,7 @@ export default function AlternativeForm({ initial = null, onSubmit, onCancel, lo
         price: initial.price || '',
         dpi_maks: initial.dpi_maks || '',
         button_score: initial.button_score || '',
-        material: initial.material || '',
+        material: normalizeMaterialQualityValue(initial.material) || '',
         weight_g: initial.weight_g || '',
       });
     } else {
@@ -122,12 +123,17 @@ export default function AlternativeForm({ initial = null, onSubmit, onCancel, lo
             onChange={e => set('weight_g', e.target.value)}
           />
         </Field>
-        <Field label="Material & Build Quality" error={errors.material}>
-          <input
-            className="dss-input"
-            placeholder="cth. PTFE feet, paracord cable, optical switch"
+        <Field
+          label="Material & Build Quality"
+          error={errors.material}
+          hint="Pilihan ini mengikuti konversi backend: Standar=1, Cukup=2, Baik=3, Sangat Baik=4, Premium=5."
+        >
+          <MaterialQualityCombobox
             value={form.material}
-            onChange={e => set('material', e.target.value)}
+            options={MATERIAL_QUALITY_OPTIONS}
+            placeholder="Pilih material & build quality"
+            disabled={loading}
+            onChange={value => set('material', value)}
           />
         </Field>
       </div>
@@ -141,6 +147,85 @@ export default function AlternativeForm({ initial = null, onSubmit, onCancel, lo
         </button>
       </div>
     </form>
+  );
+}
+
+function MaterialQualityCombobox({ value, options, placeholder, onChange, disabled = false }) {
+  const [open, setOpen] = useState(false);
+  const rootRef = useRef(null);
+  const selected = options.find(option => option.value === value);
+
+  useEffect(() => {
+    if (!open) return undefined;
+
+    const handleClickOutside = (event) => {
+      if (rootRef.current && !rootRef.current.contains(event.target)) {
+        setOpen(false);
+      }
+    };
+
+    const handleKeyDown = (event) => {
+      if (event.key === 'Escape') setOpen(false);
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    document.addEventListener('keydown', handleKeyDown);
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [open]);
+
+  const choose = (nextValue) => {
+    onChange(nextValue);
+    setOpen(false);
+  };
+
+  return (
+    <div ref={rootRef} className={`custom-combobox ${open ? 'is-open' : ''}`}>
+      <button
+        type="button"
+        className="custom-combobox-trigger"
+        aria-haspopup="listbox"
+        aria-expanded={open}
+        disabled={disabled}
+        onClick={() => setOpen(prev => !prev)}
+      >
+        <span className={selected ? 'custom-combobox-value' : 'custom-combobox-placeholder'}>
+          {selected ? `${selected.label} — Skor ${selected.score}` : placeholder}
+        </span>
+        <span className="custom-combobox-caret" aria-hidden="true">⌄</span>
+      </button>
+
+      {open && (
+        <div className="custom-combobox-menu" role="listbox">
+          <button
+            type="button"
+            className={`custom-combobox-option ${value === '' ? 'is-active' : ''}`}
+            onClick={() => choose('')}
+            role="option"
+            aria-selected={value === ''}
+          >
+            <span>{placeholder}</span>
+          </button>
+
+          {options.map(option => (
+            <button
+              key={option.value}
+              type="button"
+              className={`custom-combobox-option ${value === option.value ? 'is-active' : ''}`}
+              onClick={() => choose(option.value)}
+              role="option"
+              aria-selected={value === option.value}
+            >
+              <span>{option.label}</span>
+              <span className="custom-combobox-score">Skor {option.score}</span>
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
   );
 }
 

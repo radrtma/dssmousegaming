@@ -257,13 +257,26 @@ class TopsisCalculator {
 
     private function materialToScore(string $value): float {
         $text = strtolower(trim($value));
-        return match ($text) {
+
+        $scoreMap = [
             'standar' => 1.0,
             'cukup' => 2.0,
             'baik' => 3.0,
             'sangat_baik' => 4.0,
             'premium' => 5.0,
-            default => 3.0, // fallback default jika masih ada string mentah di database
-        };
+        ];
+
+        if (isset($scoreMap[$text])) {
+            return $scoreMap[$text];
+        }
+
+        // Fallback untuk data lama yang masih berupa teks bebas sebelum form diubah menjadi combobox.
+        if (preg_match('/entry-level|basic|standar/', $text)) return 1.0;
+        if (preg_match('/cukup/', $text)) return 2.0;
+        if (preg_match('/quickstrike|omron/', $text)) return 3.0;
+        if (preg_match('/60m|50m|paracord|mesh|onboard|adjustable|glide/', $text)) return 4.0;
+        if (preg_match('/100m|80m|70m|optical mouse switch|switches gen-3|speedflex|hyperflex|ultraweave|g-skates|ascended/', $text)) return 5.0;
+
+        return 3.0;
     }
 }

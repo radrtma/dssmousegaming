@@ -17,7 +17,7 @@ const TABS = [
 export default function Calculation({ steps, alternatives, criteria, rankings }) {
   const { tab = 'matrix' } = useParams();
   const navigate = useNavigate();
-  const activeTab = tab;
+  const activeTab = tab === 'matriks' ? 'matrix' : tab;
 
   if (!steps) {
     return (
@@ -38,27 +38,6 @@ export default function Calculation({ steps, alternatives, criteria, rankings })
       altName(id),
       ...criteria.map(c => Number(matrix[id]?.[c.code] ?? 0)),
     ]);
-
-  // Build decision matrix rows with human-readable formatting
-  const buildMatrixRows = () =>
-    altIds.map(id => {
-      const alt = alternatives.find(a => String(a.id) === String(id));
-      if (!alt) return [altName(id), ...criteria.map(() => '—')];
-      
-      return [
-        alt.name,
-        ...criteria.map(c => {
-          switch (c.code) {
-            case 'C1': return `Rp ${Number(alt.price).toLocaleString('id-ID')}`;
-            case 'C2': return `${Number(alt.dpi_maks).toLocaleString('id-ID')} DPI`;
-            case 'C3': return `${alt.button_score} Tombol`;
-            case 'C4': return `${alt.material} (Skor: ${alt.material_score})`;
-            case 'C5': return `${alt.weight_g} g`;
-            default: return alt[c.code] ?? '—';
-          }
-        })
-      ];
-    });
 
   const criteriaHeaders = ['Alternatif', ...criteria.map(c => `${c.code} (${c.name})`)];
 
@@ -105,7 +84,7 @@ export default function Calculation({ steps, alternatives, criteria, rankings })
 
       {/* Tab Content */}
       <div className="animate-fade-in-up" key={activeTab}>
-        {activeTab === 'matrix'     && <MatrixTab      rows={buildMatrixRows()}   headers={criteriaHeaders} criteria={criteria} />}
+        {activeTab === 'matrix'     && <MatrixTab      rows={buildRows(decision_matrix)} headers={criteriaHeaders} criteria={criteria} />}
         {activeTab === 'normalized' && <NormalizedTab  rows={buildRows(normalized_matrix)} headers={criteriaHeaders} criteria={criteria} />}
         {activeTab === 'weighted'   && <WeightedTab    rows={buildRows(weighted_matrix)}   headers={criteriaHeaders} criteria={criteria} />}
         {activeTab === 'ideal'      && <IdealTab       criteria={criteria} ip={ideal_positive} in_={ideal_negative} />}
@@ -160,7 +139,7 @@ function MatrixTab({ rows, headers, criteria }) {
     <TabCard
       title="Matriks Keputusan (X)"
       formula="X = [ x_ij ] dimana i = alternatif, j = kriteria"
-      description="Matriks keputusan berisi nilai asli setiap alternatif pada setiap kriteria. Nilai ini merupakan data mentah yang diinputkan ke sistem."
+      description="Matriks keputusan menampilkan skor hasil konversi dari backend, bukan data mentah dari tabel alternatif. Backend mengubah harga, DPI, jumlah tombol, material, dan berat ke nilai skala TOPSIS sebelum dinormalisasi."
     >
       <div style={{ padding: '14px 16px', borderBottom: '1px solid var(--border)', display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
         {criteria.map(c => (
@@ -196,10 +175,54 @@ function WeightedTab({ rows, headers, criteria }) {
     <TabCard
       title="Matriks Normalisasi Terbobot (V)"
       formula="v_ij = w_j × r_ij"
-      description="Setiap nilai normalisasi dikalikan dengan bobot kriteria yang telah ditentukan. Bobot mencerminkan tingkat kepentingan setiap kriteria dalam pengambilan keputusan."
+      description="Setiap nilai normalisasi dikalikan dengan bobot kriteria yang telah ditentukan. Bobot w_j di bawah ini adalah bobot ternormalisasi yang benar-benar dipakai dalam perhitungan matriks V."
     >
+      <WeightSummary criteria={criteria} />
       <CalculationTable headers={headers} rows={rows} />
     </TabCard>
+  );
+}
+
+function WeightSummary({ criteria }) {
+  const totalRawWeight = criteria.reduce((sum, c) => sum + Number(c.rawWeight ?? 0), 0);
+  const rows = criteria.map(c => [
+    c.code,
+    c.name,
+    c.type,
+    Number(c.rawWeight ?? 0),
+    Number(c.weight ?? 0),
+  ]);
+
+  return (
+    <div style={{ padding: '14px 16px', borderBottom: '1px solid var(--border)' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', gap: '12px', flexWrap: 'wrap', alignItems: 'center', marginBottom: '12px' }}>
+        <div>
+          <div style={{ fontSize: '0.78rem', fontWeight: 700, color: 'var(--text-primary)', marginBottom: 3 }}>
+            Bobot yang digunakan dalam V
+          </div>
+          <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>
+            w_j = bobot awal / total bobot. Total bobot awal = {totalRawWeight}.
+          </div>
+        </div>
+        <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+          {criteria.map(c => (
+            <span key={c.code} style={{
+              padding: '3px 10px', borderRadius: '999px', fontSize: '0.72rem', fontWeight: 700,
+              background: 'rgba(34,211,238,0.12)', color: 'var(--accent-cyan)',
+              border: '1px solid rgba(34,211,238,0.25)',
+            }}>
+              {c.code}: w_j={Number(c.weight ?? 0).toFixed(4)}
+            </span>
+          ))}
+        </div>
+      </div>
+      <CalculationTable
+        headers={['Kode', 'Kriteria', 'Jenis', 'Bobot Awal', 'w_j']}
+        rows={rows}
+        compact
+        highlightCol={4}
+      />
+    </div>
   );
 }
 

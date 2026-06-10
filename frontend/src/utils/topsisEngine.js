@@ -4,14 +4,15 @@
 // ============================================================
 
 function materialToScore(textValue = '') {
-  const text = String(textValue ?? '').toLowerCase();
-  let score = 7;
-  if (text.includes('ptfe')) score += 0.6;
-  if (text.includes('switch') || text.includes('omron') || text.includes('optical')) score += 0.6;
-  if (text.includes('paracord') || text.includes('speedflex') || text.includes('hyperflex') || text.includes('ultraweave') || text.includes('ascended')) score += 0.6;
-  if (text.includes('onboard') || text.includes('adjustable')) score += 0.4;
-  if (text.includes('entry-level')) score -= 0.5;
-  return Math.min(10, Math.max(1, Number(score.toFixed(1))));
+  const value = String(textValue ?? '').trim().toLowerCase();
+  const scoreMap = {
+    standar: 1,
+    cukup: 2,
+    baik: 3,
+    sangat_baik: 4,
+    premium: 5,
+  };
+  return scoreMap[value] ?? 3;
 }
 
 export function calculateTopsis(alternatives, criteria) {

@@ -43,7 +43,8 @@ export default function Alternatives({ alternatives, rankings, apiError, onAdd, 
 
     return alternatives.filter(a =>
       (a.name || '').toLowerCase().includes(keyword) ||
-      (a.material || '').toLowerCase().includes(keyword)
+      (a.material || '').toLowerCase().includes(keyword) ||
+      (a.material_label || '').toLowerCase().includes(keyword)
     );
   }, [alternatives, search]);
 
@@ -290,7 +291,7 @@ export default function Alternatives({ alternatives, rankings, apiError, onAdd, 
                       <td style={{ fontWeight: 600, fontSize: '0.83rem' }}>Rp {Number(alt.price).toLocaleString('id-ID')}</td>
                       <td style={{ color: 'var(--text-secondary)', fontSize: '0.83rem' }}>{Number(alt.dpi_maks).toLocaleString('id-ID')}</td>
                       <td><ScoreBadge value={alt.button_score} /></td>
-                      <td><TextWithScore text={alt.material} score={alt.material_score} /></td>
+                      <td><TextWithScore text={alt.material_label || alt.material} score={alt.material_score} /></td>
                       <td style={{ color: 'var(--text-secondary)', fontSize: '0.83rem' }}>{alt.weight_g}g</td>
                       <td>
                         {rank ? (
@@ -361,7 +362,7 @@ export default function Alternatives({ alternatives, rankings, apiError, onAdd, 
 
 function ScoreBadge({ value }) {
   const v = Number(value);
-  const color = v >= 9 ? '#22d3ee' : v >= 7 ? '#a78bfa' : '#64748b';
+  const color = v >= 9 ? '#22d3ee' : v >= 5 ? '#a78bfa' : '#64748b';
   return (
     <span style={{
       display: 'inline-flex', alignItems: 'center', justifyContent: 'center',

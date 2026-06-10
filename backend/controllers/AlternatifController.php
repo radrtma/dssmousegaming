@@ -8,6 +8,8 @@ require_once __DIR__ . '/../utils/Response.php';
 
 class AlternatifController {
 
+    private const MATERIAL_OPTIONS = ['standar', 'cukup', 'baik', 'sangat_baik', 'premium'];
+
     private Alternatif $model;
 
     public function __construct() {
@@ -67,7 +69,7 @@ class AlternatifController {
             'harga_acuan'          => $data['harga_acuan'] ?? null,
             'dpi_maks'             => $data['dpi_maks'] ?? null,
             'tombol_customization' => $data['tombol_customization'] ?? null,
-            'material'             => trim((string)($data['material'] ?? '')),
+            'material'             => strtolower(trim((string)($data['material'] ?? ''))),
             'berat'                => $data['berat'] ?? null,
         ];
     }
@@ -80,6 +82,8 @@ class AlternatifController {
         }
         if ($data['material'] === '') {
             $errors['material'] = 'material is required';
+        } elseif (!in_array($data['material'], self::MATERIAL_OPTIONS, true)) {
+            $errors['material'] = 'material must be one of: ' . implode(', ', self::MATERIAL_OPTIONS);
         }
         if (!is_numeric($data['harga_acuan']) || (float)$data['harga_acuan'] < 0) {
             $errors['harga_acuan'] = 'harga_acuan must be a non-negative number';
