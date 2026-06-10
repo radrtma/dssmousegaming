@@ -42,14 +42,6 @@ class TopsisCalculator {
     }
 
     private function normalizeCriteria(array $criteria): array {
-        $totalWeight = 0.0;
-        foreach ($criteria as $criterion) {
-            $totalWeight += (float)($criterion['bobot'] ?? $criterion['weight'] ?? 0);
-        }
-        if ($totalWeight <= 0) {
-            $totalWeight = 1.0;
-        }
-
         $normalized = [];
         foreach ($criteria as $index => $criterion) {
             $rawWeight = (float)($criterion['bobot'] ?? $criterion['weight'] ?? 0);
@@ -58,7 +50,7 @@ class TopsisCalculator {
                 'code' => $criterion['code'] ?? ('C' . ($index + 1)),
                 'name' => $criterion['nama_kriteria'] ?? $criterion['name'] ?? ('Kriteria ' . ($index + 1)),
                 'type' => strtolower((string)($criterion['jenis'] ?? $criterion['type'] ?? 'benefit')) === 'cost' ? 'cost' : 'benefit',
-                'weight' => $rawWeight / $totalWeight,
+                'weight' => $rawWeight, // Langsung menggunakan bobot awal tanpa dibagi total
                 'rawWeight' => $rawWeight,
             ];
         }
