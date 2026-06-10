@@ -149,7 +149,7 @@ function MatrixTab({ rows, headers, criteria }) {
             color: c.type === 'benefit' ? 'var(--accent-cyan)' : '#f87171',
             border: `1px solid ${c.type === 'benefit' ? 'rgba(34,211,238,0.25)' : 'rgba(239,68,68,0.25)'}`,
           }}>
-            {c.code}: {c.name} ({c.type}) · w={Number(c.weight).toFixed(4)}
+            {c.code}: {c.name} ({c.type}) · Bobot={Number(c.rawWeight ?? c.weight ?? 0)}
           </span>
         ))}
       </div>
@@ -174,8 +174,8 @@ function WeightedTab({ rows, headers, criteria }) {
   return (
     <TabCard
       title="Matriks Normalisasi Terbobot (V)"
-      formula="v_ij = w_j × r_ij"
-      description="Setiap nilai normalisasi dikalikan dengan bobot kriteria yang telah ditentukan. Bobot w_j di bawah ini adalah bobot ternormalisasi yang benar-benar dipakai dalam perhitungan matriks V."
+      formula="v_ij = bobot_j × r_ij"
+      description="Setiap nilai normalisasi dikalikan dengan bobot kriteria yang telah ditentukan. Bobot yang ditampilkan di bawah adalah bobot yang langsung digunakan dalam perhitungan matriks V."
     >
       <WeightSummary criteria={criteria} />
       <CalculationTable headers={headers} rows={rows} />
@@ -184,14 +184,17 @@ function WeightedTab({ rows, headers, criteria }) {
 }
 
 function WeightSummary({ criteria }) {
-  const totalRawWeight = criteria.reduce((sum, c) => sum + Number(c.rawWeight ?? 0), 0);
-  const rows = criteria.map(c => [
-    c.code,
-    c.name,
-    c.type,
-    Number(c.rawWeight ?? 0),
-    Number(c.weight ?? 0),
-  ]);
+  const rows = criteria.map(c => ({
+    code: c.code,
+    name: c.name,
+    type: c.type,
+    weight: Number(c.rawWeight ?? c.weight ?? 0),
+  }));
+
+  const formatWeight = (value) => {
+    const n = Number(value ?? 0);
+    return Number.isInteger(n) ? String(n) : n.toFixed(4);
+  };
 
   return (
     <div style={{ padding: '14px 16px', borderBottom: '1px solid var(--border)' }}>
@@ -201,27 +204,50 @@ function WeightSummary({ criteria }) {
             Bobot yang digunakan dalam V
           </div>
           <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>
-            w_j = bobot awal / total bobot. Total bobot awal = {totalRawWeight}.
+            Nilai bobot mengikuti kolom Bobot dan digunakan langsung untuk mengalikan matriks normalisasi.
           </div>
         </div>
         <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-          {criteria.map(c => (
+          {rows.map(c => (
             <span key={c.code} style={{
               padding: '3px 10px', borderRadius: '999px', fontSize: '0.72rem', fontWeight: 700,
               background: 'rgba(34,211,238,0.12)', color: 'var(--accent-cyan)',
               border: '1px solid rgba(34,211,238,0.25)',
             }}>
-              {c.code}: w_j={Number(c.weight ?? 0).toFixed(4)}
+              {c.code}: Bobot={formatWeight(c.weight)}
             </span>
           ))}
         </div>
       </div>
-      <CalculationTable
-        headers={['Kode', 'Kriteria', 'Jenis', 'Bobot Awal', 'w_j']}
-        rows={rows}
-        compact
-        highlightCol={4}
-      />
+
+      <div style={{ overflowX: 'auto' }}>
+        <table className="dss-table weight-summary-table" style={{ fontSize: '0.78rem', tableLayout: 'fixed' }}>
+          <colgroup>
+            <col style={{ width: '110px' }} />
+            <col />
+            <col style={{ width: '160px' }} />
+            <col style={{ width: '140px' }} />
+          </colgroup>
+          <thead>
+            <tr>
+              <th style={{ textAlign: 'center' }}>Kode</th>
+              <th style={{ textAlign: 'left' }}>Kriteria</th>
+              <th style={{ textAlign: 'center' }}>Jenis</th>
+              <th style={{ textAlign: 'center' }}>Bobot</th>
+            </tr>
+          </thead>
+          <tbody>
+            {rows.map(row => (
+              <tr key={row.code}>
+                <td style={{ textAlign: 'center', fontWeight: 700, color: 'var(--text-primary)' }}>{row.code}</td>
+                <td style={{ textAlign: 'left', color: 'var(--text-secondary)' }}>{row.name}</td>
+                <td style={{ textAlign: 'center', color: 'var(--text-secondary)', fontFamily: 'monospace' }}>{row.type}</td>
+                <td style={{ textAlign: 'center', color: 'var(--text-secondary)', fontFamily: 'monospace' }}>{formatWeight(row.weight)}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
     </div>
   );
 }
